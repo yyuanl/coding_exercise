@@ -1,5 +1,4 @@
 # 第0项是0，从0开始，输入n
-# 递归，时间复杂度随着n的变化增长率是2^n
 
 class Solution:
     def Fibonacci(self, n):
