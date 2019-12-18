@@ -8,24 +8,29 @@ stack1倒入stack2后，stack1变空，stack2的栈顶是队列的头，队列�
 
 void Queue::push(const int &element){
     stack1.push(element);
-    cout << "finish to push "<< element << "to queue !"<<endl;
+    cout << "finish to push "<< element << " to queue !"<<endl;
 }
 
 int Queue::pop(){
     int temp;
     if(stack2.empty()){
-        this.stack_to_stack(stack1, stack2);
-        temp = stack2.top();
+        stack_to_stack(stack1, stack2);     
+        temp = stack2.top();      
         stack2.pop();
+        cout << "pop finish..." << endl;
+        
     }else{
         temp =stack2.top();
         stack2.pop();
+        cout << "pop finish..." << endl;
     }
     return temp;
 }
-int& Queue::fist_ele(){
-    if(this.my_empty())
-        return ;
+int Queue::fist_ele(){
+    if(my_empty()){
+        cout << "sorry, the queue is empty" << endl;
+        return -1;
+    }       
     if(!stack2.empty()){
         return stack2.top();
     }else{
@@ -33,13 +38,13 @@ int& Queue::fist_ele(){
         return stack2.top();
     }
 }
-int& Queue::end_ele(){
-    if(this.my_empty)
-        return ;
+int Queue::end_ele(){
+    if(my_empty())
+        return -1;
     if(!stack1.empty()){
         return stack1.top();
     }else{
-        this.stack_to_stack(stack2, stack1);
+        stack_to_stack(stack2, stack1);
         return stack1.top();
     }
 }
@@ -54,7 +59,7 @@ int Queue::size(){
     return stack1.size() + stack2.size();
 
 }
-void Queue::stack_to_stack(stack<int> from_stack, stack<int> to_stack){
+void Queue::stack_to_stack(stack<int> &from_stack, stack<int> &to_stack){
     if(!to_stack.empty())
         return ;
     while(!from_stack.empty()){
