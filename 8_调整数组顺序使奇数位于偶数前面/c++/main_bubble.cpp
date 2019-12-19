@@ -9,15 +9,14 @@ void reOrderArray(vector<int> &array){
     int correct_num = 0;  // 每趟安排好一个偶数至合适的位置
     while(!is_sorted){
         is_sorted = true;
-        for(int ix = 0;ix < array.size() - correct_num - 1; ix++){
-            if(array[ix] % 2 == 0 && array[ix + 1] % 2 != 0){
+        for(int ix = 0;ix < array.size() - 1 - correct_num; ix++){
+            if(array[ix] % 2 == 0 && array[ix + 1] % 2 != 0){ //前偶后奇
                 swap(array[ix], array[ix + 1]);
                 is_sorted = false;
             }
                 
         }
-        if(is_sorted == true)
-            break;
+       
         correct_num++;
     }
     

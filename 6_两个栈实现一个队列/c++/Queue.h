@@ -4,7 +4,7 @@
 using namespace std;
 class Queue{
     public:
-        void push(const int &element); // 入队
+        void my_push(const int &element); // 入队
         int pop(); // 出队
         int fist_ele();  // 返回首元素
         int end_ele();   //  返回末尾元素
