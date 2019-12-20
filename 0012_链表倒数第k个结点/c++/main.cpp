@@ -21,8 +21,7 @@ ListNode* FindKthToTail(ListNode* pListHead, unsigned int k){
         }
             
     }
-    if(right->next == NULL)
-        cout << "+++++++++";
+  
     if((right -> next == NULL) && ( ix < k - 1)) {
         cout<<"000000";
         return NULL;
