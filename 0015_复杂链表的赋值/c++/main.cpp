@@ -105,16 +105,69 @@ RandomListNode* separate(RandomListNode* pHead){
 RandomListNode* Clone(RandomListNode* pHead){
     if(pHead == NULL)
         return NULL;
-    // 每个结点后面新插入一个结点
-    new_node(pHead);
+    RandomListNode* p_1 = pHead;
+    while(p_1 != NULL){
+        cout<<"prepare to create a new node ..."<<endl;
+        if(p_1->next != NULL){
+            cout << "old node label is "<<p_1->label<<", old node's next node label is "<<p_1->next->label<<endl;
+        }else{
+            cout << "old node label is "<<p_1->label<<", old node's next node label is NULL"<<endl;
+        }
 
-    // 按照原来结点的random来修改新结点的random
-    modify_random(pHead);
-    print_random_list(pHead);
+        RandomListNode* p_new_node = new RandomListNode;
+        p_new_node->label = p_1->label;
+        p_new_node->next = p_1->next;
+        p_1->next = p_new_node;
 
-    // 拆分旧结点和新结点
-    RandomListNode* newHead = separate(pHead);
+        if(p_1->random != NULL && p_1->next != NULL && p_new_node->next != NULL){
+            cout<<"create a new successfully. now, the old node next node's label is "<<p_1->next->label
+            <<" and its random node label is "<<p_1->random->label
+            <<" [!]new node label is "<<p_new_node->label<<" and its next node label is "<<p_new_node->next->label<<endl;
+        }
+
+        p_1 = p_1 -> next->next;
+    } 
+
+    RandomListNode* p_2 = pHead;
+    while(p_2 != NULL){
+        p_2->next->random = p_2->random;
+        p_2 = p_2->next->next;
+    }  
+
+
+    RandomListNode* p_3 = pHead;
+    RandomListNode* newHead = p_3->next;
+    RandomListNode* p_temp1 = NULL;
+    RandomListNode* p_temp2 = NULL;
+    while(p_3 != NULL){
+
+        if(p_3->next->next != NULL){
+            p_temp1 = p_3->next->next; // 老结点，当前的结点下一个老结点
+            p_temp2 = p_3->next; //新结点
+            p_3->next = p_temp1;
+            p_temp2->next = p_temp1->next; 
+            p_3 = p_temp1;
+        }else{ // 最后一个结点
+            p_3->next->next = NULL;
+            p_3->next = NULL;
+            p_3 = NULL;
+        }
+    }
     return newHead;
+
+
+    // if(pHead == NULL)
+    //     return NULL;
+    // // 每个结点后面新插入一个结点
+    // new_node(pHead);
+
+    // // 按照原来结点的random来修改新结点的random
+    // modify_random(pHead);
+    // print_random_list(pHead);
+
+    // // 拆分旧结点和新结点
+    // RandomListNode* newHead = separate(pHead);
+    // return newHead;
 }
 
 int main(){
