@@ -1,5 +1,6 @@
 #include<iostream>
 #include<string>
+#include<stack>
 using namespace std;
 struct TreeNode{
     int val;
@@ -25,41 +26,36 @@ void printNode(TreeNode &TN){
 }
 //非递归
 // 1. 先序
-void DLR(const TreeNode *root){
+void DLR(TreeNode * &root){
+    
     if(root = NULL)
         return ;
     
-    TreeNode* note = root;
-    TreeNode* rightnode = NULL;
-    stact<TreeNode*>treeStack;  //用栈来存访问过的结点，因为后面要用存储的结点来访问右子树
+    TreeNode* node = root;  //记录当前结点
+    stack<TreeNode*>treeStack;  //用栈来存访问过的结点，因为后面要用存储的结点来访问右子树
     //遍历整个树
-    while(){
-        // 先遍历左子树
-        while(note != NULL){
-            treeStack.push(note);
-            note = note -> left;
+    cout<<"*******"<<root<<endl;
+    cout<<"/////"<<treeStack.empty()<<endl;
+    while((node != NULL) || (treeStack.empty() != true)){ //结点为空，栈为空。只要这两件事不同时发生就可以继续
+cout<<"--------"<<endl;
+        // 把左边结点放入栈
+        while(node != NULL){
+            printNode(*node);  //访问树结点的操作，这里定义为打印结点值
+            node = node -> left;
         }
-
-        while(){
-            treeStack.pop();  // 栈顶是某个根结点
-            rightnode = treeStack.top() -> right;  // 只是利用根节点取出其右子树
-            leftnode = treeStack.top() -> left;    // 左子树
-            while(leftnode != NULL){
-                treeStack.push(leftnode);
-
-
-            }
+        /*这里要做两件事：
+        1.当前结点的右子树根节点准备丢入栈 
+        2. pop()到当前结点的父结点，以便当前结点平行的右子树（即，父结点的右子树）访问完成，可以对父结点的右子树进行操作*/
+        if(treeStack.empty() != true){
+            node = treeStack.top();  // note 与栈顶同步，pop之后，该栈顶会消失，如果不记录则无法获取其右子树
+            node = node -> right;  //当前结点设置为右结点，准备往栈里丢
+            treeStack.pop();  
         }
     }
-    
-
-
-
 }
 
-
 int main(){
-    TreeNode TN1(1);
+    TreeNode TN1 = TreeNode(1);
     TreeNode TN2(2);
     TreeNode TN3(3);
     TreeNode TN4(4);
@@ -77,13 +73,16 @@ int main(){
     TN4.left = NULL; TN4.right = NULL;
     TN5.left = &TN8; TN5.right = &TN9;
     TN6.left = NULL; TN6.right = &TN10;
-    TN7.left = &TN1; TN7.right = &TN12;
+    TN7.left = &TN11; TN7.right = &TN12;
     TN8.left = NULL; TN8.right = NULL;
     TN9.left = NULL; TN9.right = NULL;
     TN10.left = NULL; TN10.right = NULL;
     TN11.left = NULL; TN11.right = NULL;
     TN12.left = NULL; TN12.right = NULL;
-    printNode(TN1);
+    cout<<"========="<<(&TN1)<<endl;
+    //printNode(TN1);
+    TreeNode *tmp = &TN1;
+    DLR(tmp);
 
     return 0;
 }
