@@ -25,7 +25,35 @@ void printNode(TreeNode &TN){
 }
 //非递归
 // 1. 先序
-void DLR(const TreeNode &TN){
+void DLR(const TreeNode *root){
+    if(root = NULL)
+        return ;
+    
+    TreeNode* note = root;
+    TreeNode* rightnode = NULL;
+    stact<TreeNode*>treeStack;  //用栈来存访问过的结点，因为后面要用存储的结点来访问右子树
+    //遍历整个树
+    while(){
+        // 先遍历左子树
+        while(note != NULL){
+            treeStack.push(note);
+            note = note -> left;
+        }
+
+        while(){
+            treeStack.pop();  // 栈顶是某个根结点
+            rightnode = treeStack.top() -> right;  // 只是利用根节点取出其右子树
+            leftnode = treeStack.top() -> left;    // 左子树
+            while(leftnode != NULL){
+                treeStack.push(leftnode);
+
+
+            }
+        }
+    }
+    
+
+
 
 }
 
