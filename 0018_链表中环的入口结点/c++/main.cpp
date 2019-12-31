@@ -52,12 +52,13 @@ ListNode* EntryNodeOfLoop(ListNode* pHead){
     cout<<"the length of loop is "<<len_loop<<endl;
     // 定位入口结点
     ListNode* entry_po = getKTHFromTail(pHead, len_loop);
-    
-
-
     return entry_po;
 
 }
+
+
+
+
 int main(){
     
     ListNode first(2);
