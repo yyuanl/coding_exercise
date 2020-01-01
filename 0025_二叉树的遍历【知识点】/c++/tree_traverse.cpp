@@ -99,15 +99,47 @@ void LDR(TreeNode* root){
     }
 }
 // 3.后序
-void LDR(TreeNode* root){
-    TreeNode* current_node = root;
+void LRD(TreeNode* root){
+    TreeNode* current_node = root;  // 此指针游历整个树
     stack<TreeNode*>treeStack;
     stack<bool>flagStack;  // false表示从当前结点访问左结点
-    while(current_node != NULL){
-        treeStack.push(current_node);
-        current_node = current_node -> left;
-        flagStack.push(false);
+
+    while((treeStack.empty() != true) || (current_node != NULL)){
+        while(current_node != NULL){
+            treeStack.push(current_node);
+            current_node = current_node -> left;
+            flagStack.push(false);
+        }
+
+        if((treeStack.empty() != true) && flagStack.top()){
+            printNode(*treeStack.top());
+            treeStack.pop();
+            flagStack.pop(); 
+        }
+
+        if(treeStack.empty() != true){
+            current_node = treeStack.top();
+            current_node = current_node -> right;  
+            flagStack.top() = true;
+        }// 1.如果游历到右结点为空，栈不再push()新的结点，根据top标志true，
+        //    说明此时借根结点游历右结点完毕，下一步就要pop(),同时打印操作
+        // 2.如果游历到右结点不为空，栈会把右结点（右子树）push进去，
+        //   根据top标志false,说明此时借根结点先游历左结点,先不进行pop操作
+
+        if(current_node == NULL ){
+            cout<<"current_node is null"<<endl;
+        }else{
+            cout<<"current_node is "<<current_node -> val<<endl;
+        }
     }
+
+    
+
+
+
+
+
+
 }
 
 
@@ -144,6 +176,9 @@ int main(){
     DLR1(&TN1);
     cout<<"..................LDR............................"<<endl;
     LDR(&TN1);
+    cout<<"..................LRD............................"<<endl;
+    LRD(&TN1);
+
 
 
     return 0;
