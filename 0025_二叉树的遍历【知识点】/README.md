@@ -113,5 +113,55 @@ void LDR(TreeNode* root){
 
 ![midorder](assets/midorder.gif)
 
-三、后序：
+三、后序
 
+左子树和右子树的访问都要借助根结点，并且右子树游历结束要pop并执行打印操作，所以每个栈元素都要有一个标记，当前是在其左子树分支还是右子树分支。
+
+![latter](assets/latter.png)
+
+```c++
+void LRD(TreeNode* root){
+    TreeNode* current_node = root;  // 此指针游历整个树
+    stack<TreeNode*>treeStack;
+    stack<bool>flagStack;  // false表示从当前结点访问左结点
+
+    while((treeStack.empty() != true) || (current_node != NULL)){
+        while(current_node != NULL){
+            treeStack.push(current_node);
+            current_node = current_node -> left;
+            flagStack.push(false);
+        }
+
+        if((treeStack.empty() != true) && flagStack.top()){
+            if(flagStack.top()){
+                printNode(*treeStack.top());
+                treeStack.pop();
+                flagStack.pop(); 
+            }else{
+                current_node = treeStack.top();
+                current_node = current_node -> right;  
+                flagStack.top() = true;
+            } // 1.如果游历到右结点为空，栈不再push()新的结点，根据top标志true，
+             //    说明此时借根结点游历右结点完毕，下一步就要pop(),同时打印操作
+            // 2.如果游历到右结点不为空，栈会把右结点（右子树）push进去，
+           //   根据top标志false,说明此时借根结点先游历左结点,先不进行pop操作
+        }
+
+        if(current_node == NULL ){
+            cout<<"current_node is null"<<endl;
+        }else{
+            cout<<"current_node is "<<current_node -> val<<endl;
+        }
+    }
+}
+```
+
+四、**总结**
+
+因为左边永远在右边的左边，所以都要先把左边入栈。
+
+先序，每个结点入栈的时候进行打印。
+
+中序，从左结点回到根节点时，要pop根结点，此时执行打印操作，即此时访问了根节点。然后借助根节点访问右结点。
+
+后序，从左结点回到根节点时，不能pop,因为还要借助根节点访问右子树，而且是右结点访问结束之后还要访问根节点。从右子树回到根节点时，要执行pop，同时执行打印操作，表示此时真正访问根节点。
