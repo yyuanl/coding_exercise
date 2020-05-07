@@ -35,7 +35,8 @@ void DLR1(TreeNode * root){
     while((node != NULL) || (treeStack.empty() != true)){ //结点为空，栈为空。只要这两件事不同时发生就可以继续
         // 把左边结点放入栈
         while(node != NULL){ //这段代码负责向左 /
-            printNode(*node);  //访问树结点的操作，这里定义为打印结点值
+            //printNode(*node);  //访问树结点的操作，这里定义为打印结点值
+            cout<<node->val<<"\n"<<endl;
             treeStack.push(node);
             node = node -> left;
         } // 这里node一定是最左结点（相对）
@@ -111,7 +112,7 @@ void LRD(TreeNode* root){
             flagStack.push(false);
         }
 
-        if((treeStack.empty() != true) && flagStack.top()){
+        if((treeStack.empty() != true) && !flagStack.empty()){
             if(flagStack.top()){
                 printNode(*treeStack.top());
                 treeStack.pop();
@@ -165,7 +166,7 @@ int main(){
     cout<<"..................DLR1............................"<<endl;
     DLR1(&TN1);
     cout<<"..................DLR2............................"<<endl;
-    DLR1(&TN1);
+    DLR2(&TN1);
     cout<<"..................LDR............................"<<endl;
     LDR(&TN1);
     cout<<"..................LRD............................"<<endl;
