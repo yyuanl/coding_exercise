@@ -42,16 +42,18 @@
      ``````
      
    - 去重：
-   
+
      ``````c++
      vector<string>res;
      set<string>s(res.begin(), res.end());//利用set给res去重
      res.assign(s.begin(), s.end());
      ``````
-   
+
    - vector的clear不影响capacity
-   
+
    - 删除某个元素：`v.erase(v.begin()+ixdex);`
+
+     也可以删除范围内的元素。
 
 
 2. 类内部使用函数指针
