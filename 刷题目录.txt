@@ -16,6 +16,11 @@
 64.最小路径和
 515. 房屋染色（lintcode）
 516. 房屋染色 II（lintcode）
+602.俄罗斯套娃信封（lintcode602）
+149.买卖股票1（lintcode）
+667.最长回文子序列（lintcode667）
+150.买卖股票2（lintcode）
+151.买卖股票3（lintcode）
 
 树：
 104. 二叉树的最大深度

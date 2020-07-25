@@ -181,4 +181,58 @@
    
    ```````
 
+
+#### 笔试题
+
+1. 题目：有n个物品，编号为1-n现将其重新排列，但要求相邻的两物品编号差值绝对值不等于1,按字典序输出所有满足要求的方案。 
+
+    输入：给定-个整数n，1<=n <=10 
+
+    比如：输入4，输出 
+
+   ​	#2，4，1，3   
+
+   ​	#3，1，4，2
+
+   * **分析**：维护一个向量curr，curr保存最终满足条件的排列，打印之即可。curr中的元素不能被再次使用，维护一个n维的向量isUsed, isUSed[i]表示i已经在curr里面了。最终curr的长度是n，还要维护一个int变量，表示curr尾部还要添加几个元素。
+
+     ``````c++
+     #include <iostream>
+     #include <vector>
+     #include <stdio.h>
+     #include <stdlib.h>
+     using namespace std;
+     int n;
+     int ret [12];
+     bool isUsed[12];
+     void dfs(int &len, bool first){
+         //cout<<"len is "<<len<<endl;
+         if(len == n){
+             for(int i = 0;i < len;++i){
+                 printf("%d ", ret[i]);
+             }
+             printf("\n");
+             return ;
+         }
+         for(int i = 1; i <= n; ++i){
+             if( first || (!first && !isUsed[i] && abs(i - ret[len-1]) > 1) ){
+                 ret[len++] = i;
+                 isUsed[i] = true;
+                 dfs(len, false);
+                 // 以下两行至关重要
+                 --len;
+                 isUsed[i] = false;
+             }
+         }
+     }
+     int main(){
+         cin>>n;
+         int len = 0;
+         dfs(len,true);
+         return 0;
+     }
+     ``````
+
+     
+
    
