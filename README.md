@@ -23,101 +23,181 @@
 
 #### 三、遇到的一些c/c++用法
 
-1. 关于vector一些方法：
+关于vector一些方法：
 
-   - 找到vector中某个元素的索引：
+###### 1. 找到vector中某个元素的索引：
 
-     find找到某个元素的位置（迭代器），再使用distance。
+find找到某个元素的位置（迭代器），再使用distance。
 
-     ``````c
-     vector<int>::iterator it = find(vin.begin(), vin.end(), root_val);
-     index_root = distance(vin.begin(), it);
-     ``````
+``````c
+vector<int>::iterator it = find(vin.begin(), vin.end(), root_val);
+index_root = distance(vin.begin(), it);
+``````
 
-   - 利用一个已有的vector,复制到另一个vector:
+###### 2. 利用一个已有的vector,复制到另一个vector:
 
-     ``````c
-     vector<int>new_vector;
-     new_vector.assign(it_left,it_right);//it_left和it_right是已知vector [,)
-     ``````
-     
-   - 去重：
+``````c
+vector<int>new_vector;
+new_vector.assign(it_left,it_right);//it_left和it_right是已知vector [,)
+``````
 
-     ``````c++
-     vector<string>res;
-     set<string>s(res.begin(), res.end());//利用set给res去重
-     res.assign(s.begin(), s.end());
-     ``````
+###### 3. 去重：
 
-   - vector的clear不影响capacity
+``````c++
+vector<string>res;
+set<string>s(res.begin(), res.end());//利用set给res去重
+res.assign(s.begin(), s.end());
+``````
 
-   - 删除某个元素：`v.erase(v.begin()+ixdex);`
+###### 4. vector的clear不影响capacity
 
-     也可以删除范围内的元素。
+###### 5. 删除/erase
+
+`v.erase(v.begin()+ixdex);`
+
+也可以删除范围内的元素。
+
+###### 6. pair:
+
+可以使用make_pair或者初始化列表来生成一对pair
+
+``````c++
+#include <pair>
+#include <vector>
+int main(){
+	vector<pair<int, int>>test;
+	test.push_back(make_pair(2,3));
+}
+``````
+
+###### 7. unordered_map
+
+```c++
+#include <unordered_map>
+#include <pair>
+#include <vector>
+int main(){
+	unordered_map<int, vector<pair<int, int>> >test;
+	test[1].push_back(make_pair(5,3));// []直接插入 有则直接接入向量
+    cout<<test[1][0].first<<" "<<test[1][0].second<<endl;
+    test[1].push_back(make_pair(4,3));
+    cout<<test[1][0].first<<" "<<test[1][0].second<<endl;
+    cout<<test[1][1].first<<" "<<test[1][1].second<<endl;
+    test[23].push_back(make_pair(10,5));
+    cout<<test[23][0].first<<" "<<test[23][0].second<<endl;
+}
+```
+
+查看某个key是否存在：`unordered_map<int, char>my_map; my_map[1] = 'a'; my_map.count(1);//1或者0`
+
+###### 8、类内部使用函数指针
+
+``````c++
+class Solution {
+public:
+    // 将下面两个函数声明为静态成员函数
+    static bool f1(int currVal, int parentVal){
+        return currVal > parentVal;
+    }
+    static bool f2(int currVal, int parentVal){
+        return currVal < parentVal;
+    }
+    //函数指针作为参数
+    void heapAddElem(int ele, bool (*judge_f)(int, int)){ 	
+    	judeg_f(1, 2);
+    }
+    //在成员函数里调用heapAddElem
+    void cll_heapAddElem(){
+        heapAddElem(2, f1); //类内调用方法
+        heapAddElem(3, f2);
+    }
+  }
+//类外调用
+Solution test;
+test.heapAddElem(5,&Solution::f1);
+test.heapAddElem(5,&Solution::f2);//取静态成员函数地址
+``````
+
+**在类内部，定义一个compare成员函数，供sort使用，compare必须是静态**：
+
+``````c++
+class C{
+    public:
+    	static bool compare(int a, int b){ return a>b;}
+    	void f(vector<int>&v){
+            sort(v.begin(), b.end(), compare);
+        }
+};
+``````
 
 
-2. 类内部使用函数指针
 
-   ``````c++
-   class Solution {
-   public:
-       // 将下面两个函数声明为静态成员函数
-       static bool f1(int currVal, int parentVal){
-           return currVal > parentVal;
-       }
-       static bool f2(int currVal, int parentVal){
-           return currVal < parentVal;
-       }
-       //函数指针作为参数
-       void heapAddElem(int ele, bool (*judge_f)(int, int)){ 	
-       	judeg_f(1, 2);
-       }
-       //在成员函数里调用heapAddElem
-       void cll_heapAddElem(){
-           heapAddElem(2, f1); //类内调用方法
-           heapAddElem(3, f2);
-       }
-     }
-   //类外调用
-   Solution test;
-   test.heapAddElem(5,&Solution::f1);
-   test.heapAddElem(5,&Solution::f2);//取静态成员函数地址
-   ``````
+###### 9、string转const char*
 
-   **在类内部，定义一个compare成员函数，供sort使用，compare必须是静态**：
+``````c++
+const char* resuChar = str.c_str();
+``````
 
-   ``````c++
-   class C{
-       public:
-       	static bool compare(int a, int b){ return a>b;}
-       	void f(vector<int>&v){
-               sort(v.begin(), b.end(), compare);
-           }
-   };
-   ``````
+###### 10、**int转string**
 
-   
+`to_string(2);`
 
-3. `string`的几个用法：
+###### 11、**string统计某个字符个数**
 
-   * **`string`转`const char*`:**
+`count(v.begin(),v.end(), 'a');`
 
-     ``````c++
-     const char* resuChar = str.c_str();
-     ``````
+###### 12、**子串**：
 
-   * **int转string**:`to_string(2);`
+``````c++
+string st("adfadafdfdfdsfdfd");
+string a = st.substr(1, 5); //从索引为1处复制5个[1,1+5)
+``````
 
-   * **统计某个字符个数**：`count(v.begin(),v.end(), 'a');`
+###### 13、数值型字符串转整形
 
-   * **子串**：
+* “123456”转123456：
 
-     ``````c++
-     string st("adfadafdfdfdsfdfd");
-     string a = st.substr(1, 5); //从索引为1处复制5个[1,1+5)
-     ``````
+  ``````c++
+  #include <stdlib.h>
+  #include <string>
+  string s("123");
+  int a = atoi(s.c_str()); //1.atoi 参数要const char*  2. 先要把字符串变为c风格字符串
+  ``````
 
-4. c：
+* ‘2’转2：`char a = '2'; int b = a - 0x30;`
+
+* "12:23:34"分别得到字串“12”、“23”、“34”
+
+  ``````c++
+  #include <string>
+  #include <sstream>
+  string str = "12:34:56";
+  for (int i=0; i<str.length(); i++)
+  {
+      if (str[i] == ':')
+          str[i] = ' ';
+  }
+  vector<int> array;
+  stringstream ss(str); // 先转为字符串流
+  int temp;
+  while (ss >> temp) // 读到空格算一个字符结束。读完返回结束符，-1.
+      array.push_back(temp);
+  ``````
+
+  **注意，使用`cin>>str;`如果输入“123 456 45”, str只会读入123**，cin是以空格作为一个字符串结束的标志
+
+* string转为c风格字符串char a []内
+
+  ``````c++
+  string str1;
+  cin>>str1;
+  char arr_cr[str1.size()];
+  memset(arr_cr, 0, sizeof(arr_cr));
+  strcpy(arr_cr, str1.c_str());
+  ``````
+
+
+1. c：
 
    * 比较参数s1 和s2 字符串，比较时会自动忽略大小写的差异相同返回0
 
@@ -154,9 +234,9 @@
 
    * 
 
-5. 二维向量：`vector<vector<int> >v(rows, vector<int>(cols));`
+2. 二维向量：`vector<vector<int> >v(rows, vector<int>(cols));`
 
-6. c++ 父类virtual方法，强制子类重写后调用，具体使用谁的方法，由**对象类型**决定。另外，此时子类对象想调用父类方法必须加上作用域。复杂情况如下：
+3. c++ 父类virtual方法，强制子类重写后调用，具体使用谁的方法，由**对象类型**决定。另外，此时子类对象想调用父类方法必须加上作用域。复杂情况如下：
 
    ```````c++
    calss BST<T>{
@@ -182,55 +262,4 @@
    ```````
 
 
-#### 笔试题
 
-1. 题目：有n个物品，编号为1-n现将其重新排列，但要求相邻的两物品编号差值绝对值不等于1,按字典序输出所有满足要求的方案。 
-
-    输入：给定-个整数n，1<=n <=10 
-
-    比如：输入4，输出 
-
-   ​	#2，4，1，3   
-
-   ​	#3，1，4，2
-
-   * **分析**：维护一个向量curr，curr保存最终满足条件的排列，打印之即可。curr中的元素不能被再次使用，维护一个n维的向量isUsed, isUSed[i]表示i已经在curr里面了。最终curr的长度是n，还要维护一个int变量，表示curr尾部还要添加几个元素。
-
-     ``````c++
-     #include <iostream>
-     #include <vector>
-     #include <stdio.h>
-     #include <stdlib.h>
-     using namespace std;
-     int n;
-     int ret [12];
-     bool isUsed[12];
-     void dfs(int &len, bool first){
-         //cout<<"len is "<<len<<endl;
-         if(len == n){
-             for(int i = 0;i < len;++i){
-                 printf("%d ", ret[i]);
-             }
-             printf("\n");
-             return ;
-         }
-         for(int i = 1; i <= n; ++i){
-             if( first || (!first && !isUsed[i] && abs(i - ret[len-1]) > 1) ){
-                 ret[len++] = i;
-                 isUsed[i] = true;
-                 dfs(len, false);
-                 // 以下两行至关重要
-                 --len;
-                 isUsed[i] = false;
-             }
-         }
-     }
-     int main(){
-         cin>>n;
-         int len = 0;
-         dfs(len,true);
-         return 0;
-     }
-     ``````
-
-   

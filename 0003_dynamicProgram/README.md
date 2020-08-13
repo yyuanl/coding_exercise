@@ -665,7 +665,54 @@ $f(i,j,l)=[f(i,j,ll)\bigwedge f(i+ll,j+ll,l-ll)] \bigvee[f(i,j+l-ll,l-ll)\bigwed
 
   递推计算即可.
 
+###### 6.扔鸡蛋（leetcode 887）
 
+​	题目：给定k个鸡蛋，1-N总共N层楼。存在一个临界楼层F(0<=F<=N)使得在[1,F]扔鸡蛋不碎，而在[F+1,N]扔鸡蛋会碎。利用这K个鸡蛋，求在最小的试验次数内就能找到这个F楼层，包括在最坏的F情况下。
+
+* 分析：只有一个鸡蛋时，只能亦步亦趋的逐层楼试验。当有多个鸡蛋时，无法知道第一个鸡蛋应该从哪个楼层扔，不妨假设在第m层（1<=m<=N）扔，扔结束，进行分类讨论，如果碎，则考察楼层为[1,m-1]这m-1层楼，否则考察楼层为[m,N]这N-m层楼，出现自问题，原问题规模变小。定义$f(N,K)$为问题的解，由上述假设，当第一次在第m层扔时，$f(N,k)|m = 1+max(f(m-1,k-1), f(N - m,k))$，为什么要求最大值呢？因为我们要在最坏情况下也能排查出这个临界楼层，所以这里必须要取最坏情况。不妨记上述式子为$f(N,k)|m = g(m)$，现在让m动起来，则$f(N,k)|m = min\{g(1),g(2),...,g(i),...,g(N)\}$。在仔细分析一下$g(m)$，记$g(m) = max(h(m), t(m))$，$h(m)$递增，$t(m)$递减，$g(m)$是下凸的，我们的目标就是找到$g(m)$的最小值点，可以使用二分查找，假设二分中点为mid，如果$g(mid)= h(mid)$，目标在mid左边，否则右边，同时应该注意到到函数是离散型的，目标是位于[i,i+1]这样的区间内的（i合法），最终$f(N,k) = min(g(i), g(i+1))$。分析过程在改为一般形式的递推式，从底向上计算即可。
+
+  ``````c++
+  class Solution {
+  public:
+      int binSearch(vector<vector<int>> &v, int lo, int hi, int i,int j){
+          int mid;
+          while(lo < hi){ mid = (lo + hi) >> 1;
+              (v[i - mid][j] < v[mid - 1][j-1]) ? hi = mid : lo = mid + 1; } 
+          return --lo;
+      }
+      int superEggDrop(int K, int N) {
+          vector<vector<int>>f(N+1, vector<int>(K+1));
+          for(int i = 0;i <= K;i++){//f[0][.]  f[.][0] 非法
+              f[0][i] = 0;
+              if(i > 0)
+                  f[1][i] = 1;
+          }
+          for(int i = 0; i <= N;i++){
+              f[i][0] = INT_MAX;
+              if(i > 0)
+                  f[i][1] = i;
+          }
+          // f[i][j] = min{1 + max(f[k -1][j-1], f[i-k][j])}  k:[1,2,3 ... k,...i]
+          for(int i = 2;i <= N;i++){
+              for(int j = 2;j <= K;j++){
+                  f[i][j] = INT_MAX;
+        /* 找到 m ,使得 g(m) = max(f[m-1][j-1], f[i-m][j]) 最小. f[x][y]关于x单调增
+        记f[m-1][j-1]为h(m)， 记f[i - m][j]为t(m). h(m)递增，t(m)递减. 
+        找到target,使得h(target) == t(target), 但离散函数实际应该找到一个i, i<= target <= i+1
+                  for(int m = 1; m < i;m++){ //蛮力遍历所有m           
+                      f[i][j] = min(f[i][j], 1+max(f[m-1][j-1], f[i-m][j]));
+                  }
+                  */
+                  int floor = binSearch(f,1,i+1,i,j); // 二分找m
+                  f[i][j] = min(f[i][j], 1+max(f[floor-1][j-1], f[i-floor][j]));
+              }
+          }
+          return f[N][K];
+      }
+  };
+  ``````
+
+  
 
 ##### 背包九讲
 
@@ -734,7 +781,6 @@ int main(){
                  //dp[i][j] = max(dp[i][j], dp[i][j-1]);
              }
              //cout<<"dp["<<i<<"]"<<"["<<j<<"] = "<<dp[i][j]<<endl;
-            
          }
      }
     cout<<dp[num][capacity]<<endl;
@@ -875,11 +921,98 @@ int main(){
 }
 ``````
 
-
+**单调队列优化**：
 
 ###### 四、混合背包问题
 
+**问题描述**：n、v表示物品个数和背包容量
 
+​					n行，每行v、w、s表示容量、价值、类型，s等于-1表示01背包，s等于0表示完全背包，s大于0表示多重背包。
+
+**分析**：多重背包按照二进制重组物品，重构所有物品，分为01背包和完全背包两类。
+
+`````c++
+#include <iostream>		#include <limits.h>		#include <vector>	#include <string.h>
+using namespace std;	int n,v;
+/*空间优化*/
+int dp2[N];
+struct e{
+    int kind; int vol; int val;
+};
+#define METHOD1
+//#define METHOD2
+int main(){
+    cin>>n>>v;
+    vector<e>all;
+    for(int i = 0; i < n;i++){ //重构为01和完全背包
+        int v,w,s;
+        cin>>v>>w>>s;
+        if(s == -1){ // 01背包
+            all.push_back({-1,v,w});
+        }else if(s == 0){//完全背包
+            all.push_back({0,v,w});
+        }else{  // 多重背包
+            for(int j = 1;j <= s;j *= 2){
+                s -= j;
+                all.push_back({-1,j * v, j * w});
+            }
+            if(s>0)all.push_back({-1,s * v, s * w});
+        }
+    }
+#ifndef METHOD1
+    int dp[all.size()+1][v+1];
+    memset(dp, 0, sizeof(dp));
+    for(int i = 1; i <= all.size();i++){
+        for(int j = 1; j <= v;j++){
+            if(all[i-1].kind == -1){ // 01背包
+                dp[i][j] = dp[i-1][j];
+                if(all[i-1].vol <= j)
+                    dp[i][j] = max(dp[i][j], dp[i-1][j - all[i-1].vol] + all[i-1].val);
+            }else{  // 完全背包
+                dp[i][j] = dp[i-1][j];
+                if(all[i-1].val <= j)
+                    dp[i][j] = max(dp[i][j], dp[i][j - all[i-1].vol] + all[i-1].val);
+            }
+        }
+    }
+    cout<<dp[all.size()][v]<<endl;
+#endif
+#ifndef METHOD2
+    for(auto ee:all){
+        if(ee.kind == -1){
+            for(int i = v;i >= ee.vol;i--) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+        }else{
+            for(int i = ee.vol;i <= v;i++) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+        }
+    }
+    cout<<dp2[v]<<endl;
+#endif
+
+    return 0;
+}
+`````
+
+###### 总结
+
+* 二维数组表示状态时，容量从1计算到v
+  * 01背包：` dp[i][j] = max(dp[i-1][j], dp[i-1][j - Vol[i-1]]+Val[i-1]);`
+  * 完全背包：` dp[i][j] = max(dp[i-1][j], dp[i][j - Vol[i-1]]+Val[i-1]);`
+
+* 一维数组表示状态时，注意容量计算顺序
+
+  * 01背包：降序
+
+  ``````c++
+  for(int i = v;i >= ee.vol;i--) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+  ``````
+
+  * 完全背包：升序
+
+  ``````c++
+  for(int i = ee.vol;i <= v;i++) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+  ``````
+
+* 混合背包转化为01和完全背包问题
 
 ###### 五、二维费用背包问题
 

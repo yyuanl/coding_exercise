@@ -3,6 +3,29 @@
 #include <algorithm>
 #include "./list/ListNode.h"
 #include "D:\coding_exercise\0002_DSA\shareClass\visit.h"
+#include <string.h>
+
+/*一些堆的宏*/
+// i处元素的左/右孩子元素 的秩
+#define LC(i)           (1+((i)<<1))
+#define RC(i)           ((1 + (i))<<1)
+
+// 判断大小为n的堆，某秩x是否合法
+#define ISINHEAP(n, x)  (  (   (-1) < (x)   )   &&  (   (x) < (n)  )    )
+// #define ISINHEAP(n, i)  ( ( ( -1 ) < ( i ) ) && ( ( i ) < ( n ) ) )
+// 判断某节点是否有左/右孩子
+#define ISHAVELC(n, i)  (  ISINHEAP(n, LC(i) )  )
+#define ISHAVERC(n, i)  (  ISINHEAP(n, RC(i) )  )
+#define MAXOFTWOINDEX(v, i, j)  ( ( (v[i]) < (v[j]) ) ? (j) : (i) )
+#define MINOFTWOINDEX(v, i, j)  ( ( (v[i]) <= (v[j]) ) ? (i) : (j) )
+// 找到父子节点最大的节点在向量中的秩 vector size i  对于堆来说存在右子树存在左子树一定存在
+#define ProperParentBigHP(v, n, i)   (  ISHAVERC(n, i) ? MAXOFTWOINDEX( v, MAXOFTWOINDEX(v, i, LC(i)) , RC(i)) :\
+                                (  ISHAVELC(n, i) ? MAXOFTWOINDEX( v, i, LC(i)) : (i) )\
+                                )
+#define ProperParentSmallHP(v, n, i) ( ISHAVERC(n,i) ? MINOFTWOINDEX(v, MINOFTWOINDEX(v, i, LC(i)), RC(i) ) :\
+                                        ( ISHAVELC(n, i) ? MINOFTWOINDEX( v, i, LC(i)) : (i) )\
+                                    )
+                                    
 using namespace std;
 template <typename T>
 class Sort{
@@ -13,18 +36,20 @@ public:
     ListNodePosi(T) selectSort(ListNodePosi(T) first);
 /*归并排序*/
     void mergeSort(vector<T> &v, int lo, int hi);
-/*插入排序*/
+/*插入排序，链表*/
     ListNodePosi(T) insertionSort(ListNodePosi(T)first);
 /*堆排序*/
-    void heapSort(vector<T> &v, int lo, int hi);
+    void heapSort(vector<T> &v, bool ascend);
 /*快速排序*/
     void quickSort(vector<T> &v, int lo, int hi);
 /*希尔排序*/
     void shellSort(vector<T> &v, int lo, int hi);
+/*计数排序,桶排序的一种*/
+    void countSort(char *str, int len);
 
 /*访问vector每一个元素，方便排序前后比较*/    // 模板写在类外出错，还不会改
     template <typename VST>
-    void visitvtr(vector<T>&v,VST &visit){
+    void visitvtr(vector<T>&v,VST &visit){ // 第二个参数为函数对象
         int len = v.size();
         cout<<"start to visiting vector element..."<<endl;
         for(int i = 0; i < len;i++){
@@ -41,7 +66,7 @@ public:
         }
         cout<<"\nend to visiting..."<<endl;
     }
-private:
+public:
 /*归并排序，左右两个部分有序合并例程*/
     void merge(vector<T>&v, int lo, int mid, int hi);
 /*选择排序，从前边无序部分选择最大节点例程*/
@@ -54,6 +79,13 @@ private:
     ListNodePosi(T) search(T target, int nums, ListNodePosi(T) node);
 /*双向链表例程， 在node1后插入node2*/
     void insertA(ListNodePosi(T) node1, ListNodePosi(T) node2);
+/*堆下滤例程，堆物理呈现为一个数组，对某个秩的元素进行下滤*/
+    int percolateDown(vector<T>&heap, const int len, int posi, bool big_heap);
+/*对一个向量重新构建成堆*/
+    void heapify(vector<T>&v, const int len, bool big_heap);
+/*快速排序培养轴点，LUG划分*/
+    int my_partition_LUG(vector<T>&v, int lo, int hi);
+    int my_partition_LGU(vector<T>&v, int lo, int hi);
     
 };
 
@@ -163,17 +195,53 @@ void Sort<T>::mergeSort(vector<T> &v, int lo, int hi){
 }
 
 
-
-/*堆排序*/
-template <typename T>
-void Sort<T>::heapSort(vector<T> &v, int lo, int hi){}
 /*快速排序*/
 template <typename T>
-void Sort<T>::quickSort(vector<T> &v, int lo, int hi){}
+void Sort<T>::quickSort(vector<T> &v, int lo, int hi){
+    if(hi - lo < 2) return ;
+    int mi = ((rand() % 2) == 0)  ?  my_partition_LUG(v, lo, hi) : my_partition_LGU(v, lo, hi); // LUG 培养轴点
+    quickSort(v, lo, mi);
+    quickSort(v, mi + 1, hi);
+}
 /*希尔排序*/
 template <typename T>
-void Sort<T>::shellSort(vector<T> &v, int lo, int hi){}
-
+void Sort<T>::shellSort(vector<T> &v, int lo, int hi){
+    /*
+            ...  i -d ...
+            ...  i    ...
+    */
+    //采用ps序列{1，3，5，7，...,1073741823,...}
+    for(int d = 0x3FFFFFFF;d>=1;d >>= 1){
+        for(int i = lo + d; i < hi;i++){ // 按照矩阵行分别对每列的前i行进行插入排序,实质上就是从序列lo+d处开始到hi-1
+            T x = v[i]; // 备份待插入的元素，插入排序需要依次移动元素
+            int k = i - d; // 初始化插入的位置
+            while( lo <= k && v[k] > x){
+                v[k+d] = v[k]; 
+                k -= d;
+            }
+            v[k + d] = x;  //插入待排序的元素
+        }
+    }
+}
+/*计数排序*/
+template <typename T>
+void Sort<T>::countSort(char *str, int len){
+    int count[26];
+    memset(count, '\0', sizeof(count));
+    int acc[26];
+    for(int i = 0; i < len;i++){
+        count[str[i] - 0x61]++;
+        cout<<"num is "<<count[str[i] - 0x61]<<endl;
+    }
+    int k = 0;
+    for(int i = 0; i < 26;i++){ 
+        int j = count[i];
+        while(j-- > 0){
+            str[k++] = 0x61 + i;
+        }
+    }
+}
+//  模板定义在类外出错
 /*访问每一个元素，方便排序前后比较*/    
 // template <typename T,typename VST>
 // void Sort<T>::visitvtr(vector<T>&v,VST &visit){
@@ -231,4 +299,74 @@ void Sort<T>::insertB(ListNodePosi(T) node1, ListNodePosi(T) node2){ // node2移
     node1->pred->succ = node2; node2->pred = node1->pred;
     node2->succ = node1; node1 -> pred = node2;
 
+}
+
+/*堆下滤例程，堆物理呈现为一个数组，对某个秩的元素进行下滤*/
+template <typename T> 
+int Sort<T>::percolateDown(vector<T>&heap, const int len, int posi, bool big_heap){ // 大顶堆还是小顶堆
+    int j;
+    while( posi != ( j =  (big_heap) ? ProperParentBigHP(heap, len, posi) : ProperParentSmallHP(heap, len, posi) ) ){   
+        swap(heap[posi], heap[j]); // 保证堆序性
+        posi = j;
+    }
+    return posi;
+}
+/*对一个向量重新构建成堆*/
+template <typename T>
+void Sort<T>::heapify(vector<T>&v, const int len, bool big_heap){ // Floyd建堆算法，O(n)时间
+    for( int index = len / 2 - 1;0 <= index;index--){ //从最后一个内部节点 
+        percolateDown(v, len, index, big_heap ? true : false);  // 依次下滤
+    }
+}
+/*堆排序*/
+template <typename T>
+void Sort<T>::heapSort(vector<T> &v, bool ascend){
+    int unsortedLen = v.size();
+    heapify(v, unsortedLen, ascend ? true:false); // 建堆 大顶堆和小顶堆
+    while(0 < unsortedLen--){
+        swap(v[0], v[unsortedLen]); // 选最大的放到有序的右边部分
+        percolateDown(v, unsortedLen, 0, ascend?true:false); // 对交换上去堆顶再进行下滤
+    }
+}
+/*快排之培养轴点，LUG划分*/
+template <typename T>
+int Sort<T>::my_partition_LUG(vector<T> &v, int lo, int hi){
+    cout<<"use LUG algorithm "<<endl;
+    swap(v[lo], v[rand() % (hi-lo) + lo]); // 随机取得轴点
+    int pivot = v[lo]; hi--;
+    // 拓展G ----> 拓展L ----> 拓展G ----> 拓展L......
+    while(lo < hi){
+        while(lo < hi && pivot <= v[hi]) {
+            --hi;   //向左拓展G
+        }
+        v[lo] = v[hi];  // 小于轴点皆归入L
+        while(lo < hi && v[lo] <= pivot){  //向右拓展L
+            ++lo;
+        }
+        v[hi] = v[lo];// 大于轴点者皆归入G
+    }
+    v[lo] = pivot;
+    return lo;
+}
+
+template <typename T>
+int Sort<T>::my_partition_LGU(vector<T> &v, int lo, int hi){
+    /*
+    [lo                                                    hi)
+                    k                      m
+  L:(lo             k]  
+                    G:(k                   m)     
+                                        U: [m              hi)
+    */
+   cout<<"use LGU algorithm "<<endl;
+   swap(v[lo], v[lo + rand() % (hi - lo)]);
+   int pivot = v[lo]; int k = lo; // 开始L G皆为空
+   for(int m = lo + 1; m < hi;m++){
+       if(v[m] < pivot){
+           //swap(v[m++], v[++k]);
+           swap(v[m], v[++k]);
+       }//else {m++;}
+   }
+   swap(v[lo], v[k]);
+   return k;
 }
