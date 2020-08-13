@@ -211,7 +211,7 @@ paint house 1的一般化处理
       }
   ``````
 
-###### 3. house robber (lintcode )
+###### 3. house robber (lintcode 392 )
 
 **结束，最后一间房要么被偷，要么不被偷**，递推公式类似斐波那契额形式， 空间可以优化。
 
