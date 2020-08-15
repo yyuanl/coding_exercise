@@ -322,7 +322,7 @@ leetcode 通过，lintcode超时
 
 n个物品，背包承重为m。最多装多重?
 
-* 递推思路：假设n个物品最多装w中。对于`A[n-1]`，不知道是否入包。
+* 递推思路：假设n个物品最多装w重。对于`A[n-1]`，不知道是否入包。
 
   * 假设入包，前n-1个物品能装w-`A[n-1]`
   * 假设不入包，则前n-1个物品能装w.
@@ -401,8 +401,8 @@ n个物品，背包承重为m。最多装多重?
    $$
    \begin{split}
    f(i, w+A[i-1]) &= max(f(i-1, w - (k-1)*A[i-1]) + k*V[i-1])\\
-   &=max[f(i-1, w + *A[i-1]) ,max(f(i-1,w-k*A[i-1])+(k+1)*V[i-1])]\\
-   &=max[f(i-1, w + *A[i-1]) ,max( f(i-1,w-k*A[i-1]) )+V[i-1]] \\
+   &=max[f(i-1, w + A[i-1]) ,max(f(i-1,w-k*A[i-1])+(k+1)*V[i-1])]\\
+   &=max[f(i-1, w + A[i-1]) ,max( f(i-1,w-k*A[i-1])+k*v[i-1] )+V[i-1]] \\
    &=max[f(i-1, w+A[i-1]), f(i,w)+V[i-1]]
    \end{split}
    $$
@@ -428,7 +428,7 @@ n个物品，背包承重为m。最多装多重?
 * 分析：不妨设最优解为$f$,此时有三种情况：
 
   * 首尾字符相等，记去掉首尾后的字符串最优解为$f1$;
-  * 首位字符不等，记去掉首字符后的字符串最优解为$f2$;
+  * 首尾字符不等，记去掉首字符后的字符串最优解为$f2$;
   * 记去掉尾字符后的字符串的最优解为$f3$.
 
   易知，$f = max(f1+2,f2,f3)$。
@@ -664,3 +664,363 @@ $f(i,j,l)=[f(i,j,ll)\bigwedge f(i+ll,j+ll,l-ll)] \bigvee[f(i,j+l-ll,l-ll)\bigwed
   $f[i][j] = min(min(f[i-1][j], f[i][j-1]), f[i-1][j-1]) + 1$
 
   递推计算即可.
+
+###### 6.扔鸡蛋（leetcode 887）
+
+​	题目：给定k个鸡蛋，1-N总共N层楼。存在一个临界楼层F(0<=F<=N)使得在[1,F]扔鸡蛋不碎，而在[F+1,N]扔鸡蛋会碎。利用这K个鸡蛋，求在最小的试验次数内就能找到这个F楼层，包括在最坏的F情况下。
+
+* 分析：只有一个鸡蛋时，只能亦步亦趋的逐层楼试验。当有多个鸡蛋时，无法知道第一个鸡蛋应该从哪个楼层扔，不妨假设在第m层（1<=m<=N）扔，扔结束，进行分类讨论，如果碎，则考察楼层为[1,m-1]这m-1层楼，否则考察楼层为[m,N]这N-m层楼，出现自问题，原问题规模变小。定义$f(N,K)$为问题的解，由上述假设，当第一次在第m层扔时，$f(N,k)|m = 1+max(f(m-1,k-1), f(N - m,k))$，为什么要求最大值呢？因为我们要在最坏情况下也能排查出这个临界楼层，所以这里必须要取最坏情况。不妨记上述式子为$f(N,k)|m = g(m)$，现在让m动起来，则$f(N,k)|m = min\{g(1),g(2),...,g(i),...,g(N)\}$。在仔细分析一下$g(m)$，记$g(m) = max(h(m), t(m))$，$h(m)$递增，$t(m)$递减，$g(m)$是下凸的，我们的目标就是找到$g(m)$的最小值点，可以使用二分查找，假设二分中点为mid，如果$g(mid)= h(mid)$，目标在mid左边，否则右边，同时应该注意到到函数是离散型的，目标是位于[i,i+1]这样的区间内的（i合法），最终$f(N,k) = min(g(i), g(i+1))$。分析过程在改为一般形式的递推式，从底向上计算即可。
+
+  ``````c++
+  class Solution {
+  public:
+      int binSearch(vector<vector<int>> &v, int lo, int hi, int i,int j){
+          int mid;
+          while(lo < hi){ mid = (lo + hi) >> 1;
+              (v[i - mid][j] < v[mid - 1][j-1]) ? hi = mid : lo = mid + 1; } 
+          return --lo;
+      }
+      int superEggDrop(int K, int N) {
+          vector<vector<int>>f(N+1, vector<int>(K+1));
+          for(int i = 0;i <= K;i++){//f[0][.]  f[.][0] 非法
+              f[0][i] = 0;
+              if(i > 0)
+                  f[1][i] = 1;
+          }
+          for(int i = 0; i <= N;i++){
+              f[i][0] = INT_MAX;
+              if(i > 0)
+                  f[i][1] = i;
+          }
+          // f[i][j] = min{1 + max(f[k -1][j-1], f[i-k][j])}  k:[1,2,3 ... k,...i]
+          for(int i = 2;i <= N;i++){
+              for(int j = 2;j <= K;j++){
+                  f[i][j] = INT_MAX;
+        /* 找到 m ,使得 g(m) = max(f[m-1][j-1], f[i-m][j]) 最小. f[x][y]关于x单调增
+        记f[m-1][j-1]为h(m)， 记f[i - m][j]为t(m). h(m)递增，t(m)递减. 
+        找到target,使得h(target) == t(target), 但离散函数实际应该找到一个i, i<= target <= i+1
+                  for(int m = 1; m < i;m++){ //蛮力遍历所有m           
+                      f[i][j] = min(f[i][j], 1+max(f[m-1][j-1], f[i-m][j]));
+                  }
+                  */
+                  int floor = binSearch(f,1,i+1,i,j); // 二分找m
+                  f[i][j] = min(f[i][j], 1+max(f[floor-1][j-1], f[i-floor][j]));
+              }
+          }
+          return f[N][K];
+      }
+  };
+  ``````
+
+  
+
+##### 背包九讲
+
+###### 一、01背包问题
+
+**问题描述：**有一个背包，容量有限，有一堆物品，每个物品体积和价值已知。最多能装多少价值的东西。
+
+输入：第一行 N， V 空格隔开，表示物品的数量和背包容量
+
+​			接下来N行，第i行表示第i个物品的体积和价值，空格隔开
+
+**分析：**最后一步就是最后一个物品是否入包，从而产生子问题。状态的语义有两种。
+
+* `dp[i][j]`表示：**前i个**物品**恰**能凑齐j体积时的最大价值，显然j在[0,V]内取。这样，**最终的结果是**$max({dp[N][x],x\in[0,V]})$。根据语义来初始化，`dp[0][1]...dp[0][V]`置为-1表示无法使用0个物品来凑大于0的价值, `dp[0][0]`初始化为0。
+* `dp[i][j]`表示：**前i个**物品**不超过**j体积限制下能凑出的最大值。这样，**最终的结果是**`dp[N][V]`。根据语义来初始化，`dp[0][0]...dp[0][V]`为0。
+* 递推方程：**`dp[i][j] = max(dp[i-1][j], dp[i-1][j - arrVol[i-1]]+arrVal[i-1])`**
+
+状态转移方程根据最后一步定义。分析转移方程，空间可以优化到一维。**`dp[i][j]`和`dp[i-1][j]`、`dp[i-1][j-vol[i-1]]`有关**
+
+``````c++
+#include <iostream>
+using namespace std;
+#define N 1010
+#define METHOD1
+#define METHOD2
+// #define OPTIMIZATION
+int num, capacity;
+int arrVol[N], arrVal[N];
+int dp[N][N]; 
+int dp2[N];
+int main(){
+    cin>>num>>capacity;
+    for(int i = 0; i < num; ++i){
+         cin>>arrVol[i]>>arrVal[i];
+     }
+#ifndef METHOD1
+     for(int i = 1; i <= capacity;++i){//显示初始化
+         dp[0][i] = -1;
+     }
+     for(int i = 1;i <= num;++i){
+         for(int j = 0; j <= capacity;++j){
+             dp[i][j] = dp[i-1][j];
+             if(j >= arrVol[i-1] && dp[i-1][j-arrVol[i-1]] != -1){
+                 dp[i][j] = max(dp[i][j], dp[i-1][j-arrVol[i-1]] + arrVal[i-1]);
+             }
+             //cout<<"dp["<<i<<"]"<<"["<<j<<"] = "<<dp[i][j]<<endl;       
+         }
+     }
+     int ret = 0;
+     for(int i = 0; i <= capacity; ++i){
+         ret = max(ret, dp[num][i]);
+     }
+     cout<<ret<<endl;
+#endif 
+//---------------------------------------------------------------------------
+#ifndef METHOD2
+    /*另一种语义*/ 
+    for(int i = 1; i <= num; i++)dp[0][i] = 0;// 显示初始化为0 
+     for(int i = 1; i <= num; i++){
+         for(int j = 0;j <= capacity;j++){
+             dp[i][j] = dp[i-1][j];
+             //cout<<"arrVol = "<<arrVol[i-1]<<endl;
+            
+             if(j >= arrVol[i-1]){
+                 dp[i][j] = max(dp[i][j], dp[i-1][j - arrVol[i-1]]+arrVal[i-1]);
+                 //dp[i][j] = max(dp[i][j], dp[i][j-1]);
+             }
+             //cout<<"dp["<<i<<"]"<<"["<<j<<"] = "<<dp[i][j]<<endl;
+         }
+     }
+    cout<<dp[num][capacity]<<endl;
+#endif 
+//---------------------------------------------------------------------------
+#ifndef OPTIMIZATION  
+    /*压缩空间*/
+    //for(int i = 1; i <= num; i++)dp[0][i] = 0;// 显示初始化为0 
+    for(int i = 1; i <= num; i++){
+        for(int j = capacity;j >= arrVol[i-1];j--){
+            dp2[j] = max(dp2[j], dp2[j - arrVol[i-1]]+arrVal[i-1]);
+        }
+    }
+    cout<<dp2[capacity]<<endl;
+#endif
+    return 0;
+}
+``````
+
+###### 二、完全背包问题
+
+**问题描述：**有一个背包，容量有限，有一堆物品，每个物品体积和价值已知。最多能装多少价值的东西。每个物体可以被装**无限次**。
+
+输入：第一行 N， V 空格隔开，表示物品的数量和背包容量
+
+​			接下来N行，第i行表示第i个物品的体积和价值，空格隔开
+
+**分析**：最后一步就是最后一个物品**类**是否进入背包。
+
+* `dp[i][j]`表示前i个物品在j容量的限制下能够装的最大值。初始化根据语义初始，最终结果是`dp[N][V]`。
+
+  经过转化，递归方程（等价变化之后）：**`dp[i][j] = max(dp[i-1][j], dp[i][j-vol[i-1] + val[i-1])`**，可以压缩到一维，计算顺序和01背包不同，是顺序计算。**`dp[i][j]`和`dp[i-1][j]`、`dp[i][j-vol[i-1]]`有关**
+
+``````c++
+#include <iostream>
+using namespace std;
+#define N 10010
+int num, capacity;
+int vol[N], val[N];
+int dp[N][N]; 
+int dp2[N];
+#define METHOD1
+// #define OPTIMIZATION
+int main(){
+    cin>>num>>capacity;
+    for(int i = 0; i < num;i++)cin>>vol[i]>>val[i];
+#ifndef METHOD1
+    for(int i = 1;i <= num;i++){
+        for(int j = 0;j <= capacity;j++){
+            dp[i][j] = dp[i-1][j];
+            if(j>=vol[i-1])
+                dp[i][j] = max(dp[i][j], dp[i][j-vol[i-1]] + val[i-1]);
+        }
+    }
+    cout<<dp[num][capacity];
+#endif
+//------------------------空间优化----------------
+#ifndef OPTIMIZATION
+    for(int i = 1;i <= num;i++){
+        for(int j = vol[i-1];j <= capacity;j++){
+            dp2[j] = max(dp2[j], dp2[j-vol[i-1]] + val[i-1]);
+        }
+    }
+    cout<<dp2[capacity]<<endl;   
+#endif
+    return 0;
+}
+``````
+
+###### 三、多重背包问题
+
+**问题描述**：n个物品，一个容量v的背包。每个物品有体积、价值、数量。问可装的最大价值。
+
+最优解的结构：最后一个物品装了K个，用$f(i,j)$表示容量限制为j下，用前i种物品类可以装的最大价值。
+
+递归的定义最优解的值：
+
+​			$$f(i,j) = \begin{cases}   0 & j = 0或i=0  \\ \max\{ f(i, j-k*vol[i-1])+k*val[i-1] \} & 0 \leq k \leq s[i-1]\&\&k*vol[i-1]\leq j \end{cases}$$
+
+``````c++
+#include<iostream>
+#include <limits.h>
+using namespace std;
+const int NN = 110;  int N, V; int vol[NN], val[NN], s[NN];  int dp[NN][NN]; int dp2[NN];
+//#define NOOPTIMIZATION
+#define OPTIMIZATION
+int main(){
+    cin>>N>>V;
+    for(int i = 0; i < N; i++ )cin>>vol[i]>>val[i]>>s[i];
+#ifndef NOOPTIMIZATION
+    for(int i = 1; i <= N; i++){
+        for(int j = 1;j <= V; j++){
+            //dp[i][j] = dp[i-1][j];
+            dp[i][j] = INT_MIN;
+            for(int k = 0; k <= s[i-1] && k*vol[i-1]<=j; k++){
+                dp[i][j] = max(dp[i][j], dp[i-1][j - k*vol[i-1]] + k*val[i-1]);
+            }
+        }
+    }
+    cout<<dp[N][V]<<endl;
+#endif
+#ifndef OPTIMIZATION
+    for(int i = 1; i <= N; i++){
+       for(int j = V;j >= 1;j--){
+           for(int k = 0; k * vol[i-1] <= j && k <= s[i-1]; k++){
+               dp2[j] = max(dp2[j], dp2[j - k * vol[i-1]] + k*val[i-1]);
+           }
+       }
+    }
+    cout<<dp2[V]<<endl;
+#endif
+    return 0;
+}
+``````
+
+**再优化**：对每种物品进行重新组合，组合方式：分别1，2，4，8...个物品视为一个大物体，利用二进制思想，例如某个物品个数是n个，二进制拆分能表示出1-n所有的组合。
+
+``````c++
+#include <iostream>    #include <utility>   #include <vector>
+using namespace std;   const int N = 2010;  int f[N]; int n, m;
+int main(){
+    cin>>n>>m;    vector<pair<int , int > >goods;
+    for(int i = 0; i < n; i++){  
+        int v, w, s; cin>>v>>w>>s;
+        /*二进制重组每种物品，构造01背包问题*/
+        for(int j = 1; j <= s; j*=2){
+            s = s-j;
+            goods.push_back(make_pair(j * v, j * w));
+        }
+        if(s>0)goods.push_back(make_pair(s * v, s * w));
+    }
+    for(auto e:goods){
+        for(int k = m;k >= e.first;k--)
+            f[k] = max(f[k], f[k - e.first] + e.second);
+    }
+    cout<<f[m]<<endl;
+    return 0;
+}
+``````
+
+**单调队列优化**：
+
+###### 四、混合背包问题
+
+**问题描述**：n、v表示物品个数和背包容量
+
+​					n行，每行v、w、s表示容量、价值、类型，s等于-1表示01背包，s等于0表示完全背包，s大于0表示多重背包。
+
+**分析**：多重背包按照二进制重组物品，重构所有物品，分为01背包和完全背包两类。
+
+`````c++
+#include <iostream>		#include <limits.h>		#include <vector>	#include <string.h>
+using namespace std;	int n,v;
+/*空间优化*/
+int dp2[N];
+struct e{
+    int kind; int vol; int val;
+};
+#define METHOD1
+//#define METHOD2
+int main(){
+    cin>>n>>v;
+    vector<e>all;
+    for(int i = 0; i < n;i++){ //重构为01和完全背包
+        int v,w,s;
+        cin>>v>>w>>s;
+        if(s == -1){ // 01背包
+            all.push_back({-1,v,w});
+        }else if(s == 0){//完全背包
+            all.push_back({0,v,w});
+        }else{  // 多重背包
+            for(int j = 1;j <= s;j *= 2){
+                s -= j;
+                all.push_back({-1,j * v, j * w});
+            }
+            if(s>0)all.push_back({-1,s * v, s * w});
+        }
+    }
+#ifndef METHOD1
+    int dp[all.size()+1][v+1];
+    memset(dp, 0, sizeof(dp));
+    for(int i = 1; i <= all.size();i++){
+        for(int j = 1; j <= v;j++){
+            if(all[i-1].kind == -1){ // 01背包
+                dp[i][j] = dp[i-1][j];
+                if(all[i-1].vol <= j)
+                    dp[i][j] = max(dp[i][j], dp[i-1][j - all[i-1].vol] + all[i-1].val);
+            }else{  // 完全背包
+                dp[i][j] = dp[i-1][j];
+                if(all[i-1].val <= j)
+                    dp[i][j] = max(dp[i][j], dp[i][j - all[i-1].vol] + all[i-1].val);
+            }
+        }
+    }
+    cout<<dp[all.size()][v]<<endl;
+#endif
+#ifndef METHOD2
+    for(auto ee:all){
+        if(ee.kind == -1){
+            for(int i = v;i >= ee.vol;i--) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+        }else{
+            for(int i = ee.vol;i <= v;i++) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+        }
+    }
+    cout<<dp2[v]<<endl;
+#endif
+
+    return 0;
+}
+`````
+
+###### 总结
+
+* 二维数组表示状态时，容量从1计算到v
+  * 01背包：` dp[i][j] = max(dp[i-1][j], dp[i-1][j - Vol[i-1]]+Val[i-1]);`
+  * 完全背包：` dp[i][j] = max(dp[i-1][j], dp[i][j - Vol[i-1]]+Val[i-1]);`
+
+* 一维数组表示状态时，注意容量计算顺序
+
+  * 01背包：降序
+
+  ``````c++
+  for(int i = v;i >= ee.vol;i--) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+  ``````
+
+  * 完全背包：升序
+
+  ``````c++
+  for(int i = ee.vol;i <= v;i++) dp2[i] = max(dp2[i], dp2[i-ee.vol] + ee.val);
+  ``````
+
+* 混合背包转化为01和完全背包问题
+
+###### 五、二维费用背包问题
+
+###### 六、分组背包问题
+
+###### 七、背包问题求方案数
+
+###### 八、求背包问题的方案
+
+###### 九、有依赖的背包问题
+

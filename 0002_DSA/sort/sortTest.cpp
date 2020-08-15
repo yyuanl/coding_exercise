@@ -5,6 +5,7 @@
 #include "D:\coding_exercise\0002_DSA\shareClass\visit.h"
 using namespace std;
 int main(){
+    /*
     Visit<int> vst;
     
     Sort<int> srt;
@@ -56,5 +57,63 @@ int main(){
     ListNodePosi(int)frt_insert =  srt.insertionSort(&first_insert);
     cout<<"list after selecSort..."<<endl;
     srt.visitList(frt_insert, vst);
+   
+    cout<<"=========test countSort ========"<<endl;
+    char s[] = {'y', 'j', 'h', 'a', 'j', 'b', 'y', 'a', 'c', 'b', 'z', 'b'};
+    cout<<"sort before"<<endl;
+    for(int i = 0; i < 12; i++)
+        cout<<s[i]<<" ";
+    cout<<endl;
+    Sort<int>test;
+    test.countSort(s, 12);
+
+    cout<<"sort after.."<<endl;
+    for(int i = 0; i < 12; i++)
+        cout<<s[i]<<" ";
+    cout<<endl;
+    */
+
+    cout<<"=========test heap sort ========"<<endl;
+    Visit<int> vst;
+    Sort<int> srt;
+    //vector<int>v_2{5, 4, 3, 8, 9, 15,2, 1, 6};
+    vector<int>v_2;
+    for(int i = 0; i < 10;i++){
+        v_2.push_back(rand() % 10);
+    }
+    srt.visitvtr(v_2, vst);
+    srt.heapify(v_2,v_2.size(), false);  //降序
+    srt.heapSort(v_2,false);
+    srt.visitvtr(v_2, vst);
+    vector<int>a{1,2,3,4,5,6};
+    vector<int>b(a.begin() + 1, a.end()- 2 );
+    srt.visitvtr(b,vst);
+   /*
+    cout<<"=========test quick sort ========"<<endl;
+    Visit<int> vst;
+    Sort<int> srt;
+    vector<int>v_3{5, 4, 3, 8, 9, 15,2};
+    srt.visitvtr(v_3, vst);
+    srt.quickSort(v_3, 0, v_3.size());
+    srt.visitvtr(v_3, vst);
+    */
+    // cout<<"=========test shell sort ========"<<endl;
+    // Visit<int> vst;
+    // Sort<int> srt;
+    // vector<int>v_4{5, 4, 3, 8, 9, 15,2};
+    // srt.visitvtr(v_4, vst);
+    // srt.shellSort(v_4, 0, v_4.size());
+    // srt.visitvtr(v_4, vst);
+
+
+
+
+
+
+
+
+
+
+
     return 0;
 }
