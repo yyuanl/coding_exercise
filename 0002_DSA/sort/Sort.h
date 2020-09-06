@@ -265,9 +265,9 @@ template <typename T>
 void Sort<T>::merge(vector<T>&v, int lo, int mid, int hi){
     int lenLeft = mid - lo;
     vector<T>B;
-    B.assign(v.begin()+lo, v.begin()+lo+mid);
+    B.assign(v.begin()+lo, v.begin()+mid);
     for(int idx_a = lo,idx_b = 0, idx_c = mid; idx_b < lenLeft;){ // 这里不能判断idx_b是否越界
-        v[idx_a++] = (idx_c >= hi || B[idx_b] < v[idx_c]) ? B[idx_b++] : v[idx_c++]; // 这里判断idx_b是否越界
+        v[idx_a++] = (idx_c >= hi || B[idx_b] <= v[idx_c]) ? B[idx_b++] : v[idx_c++]; // 这里判断idx_b是否越界  【注意  使用小于等于保证时稳定排序】
     }
     /*A:[lo,             hi)
         B:[lo,    mid)
