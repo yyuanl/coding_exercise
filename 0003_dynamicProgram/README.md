@@ -733,71 +733,7 @@ $f(i,j,l)=[f(i,j,ll)\bigwedge f(i+ll,j+ll,l-ll)] \bigvee[f(i,j+l-ll,l-ll)\bigwed
 状态转移方程根据最后一步定义。分析转移方程，空间可以优化到一维。**`dp[i][j]`和`dp[i-1][j]`、`dp[i-1][j-vol[i-1]]`有关**
 
 ``````c++
-#include <iostream>
-using namespace std;
-#define N 1010
-#define METHOD1
-#define METHOD2
-// #define OPTIMIZATION
-int num, capacity;
-int arrVol[N], arrVal[N];
-int dp[N][N]; 
-int dp2[N];
-int main(){
-    cin>>num>>capacity;
-    for(int i = 0; i < num; ++i){
-         cin>>arrVol[i]>>arrVal[i];
-     }
-#ifndef METHOD1
-     for(int i = 1; i <= capacity;++i){//显示初始化
-         dp[0][i] = -1;
-     }
-     for(int i = 1;i <= num;++i){
-         for(int j = 0; j <= capacity;++j){
-             dp[i][j] = dp[i-1][j];
-             if(j >= arrVol[i-1] && dp[i-1][j-arrVol[i-1]] != -1){
-                 dp[i][j] = max(dp[i][j], dp[i-1][j-arrVol[i-1]] + arrVal[i-1]);
-             }
-             //cout<<"dp["<<i<<"]"<<"["<<j<<"] = "<<dp[i][j]<<endl;       
-         }
-     }
-     int ret = 0;
-     for(int i = 0; i <= capacity; ++i){
-         ret = max(ret, dp[num][i]);
-     }
-     cout<<ret<<endl;
-#endif 
-//---------------------------------------------------------------------------
-#ifndef METHOD2
-    /*另一种语义*/ 
-    for(int i = 1; i <= num; i++)dp[0][i] = 0;// 显示初始化为0 
-     for(int i = 1; i <= num; i++){
-         for(int j = 0;j <= capacity;j++){
-             dp[i][j] = dp[i-1][j];
-             //cout<<"arrVol = "<<arrVol[i-1]<<endl;
-            
-             if(j >= arrVol[i-1]){
-                 dp[i][j] = max(dp[i][j], dp[i-1][j - arrVol[i-1]]+arrVal[i-1]);
-                 //dp[i][j] = max(dp[i][j], dp[i][j-1]);
-             }
-             //cout<<"dp["<<i<<"]"<<"["<<j<<"] = "<<dp[i][j]<<endl;
-         }
-     }
-    cout<<dp[num][capacity]<<endl;
-#endif 
-//---------------------------------------------------------------------------
-#ifndef OPTIMIZATION  
-    /*压缩空间*/
-    //for(int i = 1; i <= num; i++)dp[0][i] = 0;// 显示初始化为0 
-    for(int i = 1; i <= num; i++){
-        for(int j = capacity;j >= arrVol[i-1];j--){
-            dp2[j] = max(dp2[j], dp2[j - arrVol[i-1]]+arrVal[i-1]);
-        }
-    }
-    cout<<dp2[capacity]<<endl;
-#endif
-    return 0;
-}
+
 ``````
 
 ###### 二、完全背包问题

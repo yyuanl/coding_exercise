@@ -265,10 +265,16 @@ template <typename T>
 void Sort<T>::merge(vector<T>&v, int lo, int mid, int hi){
     int lenLeft = mid - lo;
     vector<T>B;
+<<<<<<< HEAD
     B.assign(v.begin()+lo, v.begin()+lo+mid);
     for(int idx_a = lo,idx_b = 0, idx_c = mid; idx_b < lenLeft;){ // 这里不能判断idx_c是否越界
         //前半段归入的条件是：前半段元素小或者后半段已经遍历完（idx_c越界）
         v[idx_a++] = (idx_c >= hi || B[idx_b] < v[idx_c]) ? B[idx_b++] : v[idx_c++]; // 这里判断idx_c是否越界
+=======
+    B.assign(v.begin()+lo, v.begin()+mid);
+    for(int idx_a = lo,idx_b = 0, idx_c = mid; idx_b < lenLeft;){ // 这里不能判断idx_b是否越界
+        v[idx_a++] = (idx_c >= hi || B[idx_b] <= v[idx_c]) ? B[idx_b++] : v[idx_c++]; // 这里判断idx_b是否越界  【注意  使用小于等于保证时稳定排序】
+>>>>>>> 1261ceff0439c61f6da4fe2fe51c1045c1f82cd2
     }
     /*A:[lo,             hi)
         B:[lo,    mid)
