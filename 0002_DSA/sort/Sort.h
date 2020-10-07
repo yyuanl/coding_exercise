@@ -266,8 +266,9 @@ void Sort<T>::merge(vector<T>&v, int lo, int mid, int hi){
     int lenLeft = mid - lo;
     vector<T>B;
     B.assign(v.begin()+lo, v.begin()+lo+mid);
-    for(int idx_a = lo,idx_b = 0, idx_c = mid; idx_b < lenLeft;){ // 这里不能判断idx_b是否越界
-        v[idx_a++] = (idx_c >= hi || B[idx_b] < v[idx_c]) ? B[idx_b++] : v[idx_c++]; // 这里判断idx_b是否越界
+    for(int idx_a = lo,idx_b = 0, idx_c = mid; idx_b < lenLeft;){ // 这里不能判断idx_c是否越界
+        //前半段归入的条件是：前半段元素小或者后半段已经遍历完（idx_c越界）
+        v[idx_a++] = (idx_c >= hi || B[idx_b] < v[idx_c]) ? B[idx_b++] : v[idx_c++]; // 这里判断idx_c是否越界
     }
     /*A:[lo,             hi)
         B:[lo,    mid)
@@ -311,7 +312,7 @@ int Sort<T>::percolateDown(vector<T>&heap, const int len, int posi, bool big_hea
     }
     return posi;
 }
-/*对一个向量重新构建成堆*/
+/*对一个向量前len个元素重新构建成堆*/
 template <typename T>
 void Sort<T>::heapify(vector<T>&v, const int len, bool big_heap){ // Floyd建堆算法，O(n)时间
     for( int index = len / 2 - 1;0 <= index;index--){ //从最后一个内部节点 

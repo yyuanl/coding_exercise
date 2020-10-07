@@ -223,7 +223,7 @@ void midOder(treeNode*root){
     while(true){
         goAlongLeftBranck(childN, s);
         if(s.empty()) break;
-        visit(s.top()); childN = (s.top())->right;//访问最左结点，递交访问控制权只右子树
+        visit(s.top()); childN = (s.top())->right;//访问最左结点，递交访问控制权至右子树
         s.pop();
     }
 }

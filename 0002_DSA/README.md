@@ -534,7 +534,7 @@ int Heap<T>::percolateDown(int posi){ // 大顶堆还是小顶堆
 
 ###### 1. 冒泡排序
 
-​		**有序向量相邻的两个元素是有序的，通过扫描交换来消除无须向量两个紧邻元素的逆序性。每趟扫描，都会有一个元素就为，k次扫描整个向量的前k大个元素必然就为与向量后部分。改进的版本是记录上一次最后一次扫描的位置，从而跳过对有序部分的无效扫描。整个向量后半部分是就位的，前半部分数值随机是真实需要交换的，改进版本就是准确定位需要真实有效交换的区间**。最坏情况下仍需要O(n*n),最好情况需要O(n)。
+​		**有序向量相邻的两个元素是有序的，通过扫描交换来消除无须向量两个紧邻元素的逆序性。每趟扫描，都会有一个元素就位，k次扫描整个向量的前k大个元素必然就为与向量后部分。改进的版本是记录上一次最后一次扫描的位置，从而跳过对有序部分的无效扫描。整个向量后半部分是就位的，前半部分数值随机是真实需要交换的，改进版本就是准确定位需要真实有效交换的区间**。最坏情况下仍需要O(n*n),最好情况需要O(n)。
 
 <img src="./assets/10.png" style="zoom:100%;" />
 
@@ -677,3 +677,412 @@ void merge(vector<T>&v, int lo, int mid, int hi){
 * **减而治之的方法，利用快排的轴点策略**
 
   <img src="./assets/45.png" style="zoom:80%;" />
+
+##### 七、图
+
+​	表示一个图，只需要结点集合，和邻接矩阵就可以，邻接矩阵存放边类型。
+
+###### 1、bfs
+
+​	从图的某个结点开始bfs搜索，类似树的层次遍历，采用队列装入将要访问的结点，访问当前结点时要把其所有未被访问过的邻居结点找出来放入队列，如此一层一层的访问。简化代码，以接口形式给出当前结点的第一个邻接结点，和其与某个邻接结点的下一个邻接结点。访问的边形成支撑树。两个结点之间的**最短路径**，就是对应以其某个结点开始进行bfs访问至另一个结点的路径。
+
+<img src="./assets/46.png" style="zoom:80%;" />
+
+###### 2、dfs
+
+​	dfs搜索就是找到当前结点任意一个未被访问的邻接结点，对其访问，以它为当前结点再递归的进行dfs搜索，直到某个结点的邻接结点均被访问，递归返回，回溯到上一层再找上一层未被访问的邻接结点进行dfs搜索。从图的某个结点出发，找到该结点未被访问的邻接结点，再对其进行dfs搜索。
+
+<img src="./assets/47.png" style="zoom:80%;" />
+
+一道岛屿的题，把内部的z替换为x
+
+``````c++
+#include "./Graph.h"
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <unordered_map>
+#include <list>
+using namespace std;
+int row,col;
+enum state{M_UNVISITED,M_VISITED,M_CHANGE};
+struct point{
+    int x, y;
+    state s;
+    point():x(-1), y(-1), s(M_UNVISITED){}
+};
+using z_chain = vector<pair<int,int>>;
+#define index_leg(i, j) (     ( (i > 0) && (i < row) && (j > 0) && (j < col) )   ? (true):(false))
+ 
+#define inboundary(i, j)  (  (((i) == (row - 1))||((j) == (col - 1))) ? (true) : (false))
+
+// 找一个未被访问过的符合条件 的邻接结点
+pair<int, int> randAdj(vector<vector<char>>&v,vector<vector<point>>&flag, int i, int j){
+    if(index_leg(i-1,j) && v[i-1][j] == 'z' && flag[i-1][j].s == M_UNVISITED){
+        return {i-1,j};
+    }
+    if(index_leg(i+1,j) && v[i+1][j] == 'z' && flag[i+1][j].s == M_UNVISITED){
+        return {i+1,j};
+    }
+    if(index_leg(i,j-1) && v[i][j-1] == 'z' && flag[i][j-1].s == M_UNVISITED){
+        return {i,j-1};
+    }
+    if(index_leg(i,j+1) && v[i][j+1] == 'z' && flag[i][j+1].s == M_UNVISITED){
+        return {i,j+1};
+    }
+    return {-1,-1};
+}
+
+void dfs(vector<vector<char>>&v, int r, int c, vector<vector<point>>&flag, z_chain &zc, bool &zc_okay){
+    if(flag[r][c].s == M_VISITED)return ;
+    //if(!index_leg(r,c))return ;
+    flag[r][c].s = M_VISITED;  //当前结点标记为访问
+    //cout<<r<<" "<<c<<endl;
+    zc.push_back({r,c});
+    if(inboundary(r,c)){  //在边界上
+        zc_okay = false;
+    }
+    for(pair<int, int> adj_index = randAdj(v, flag, r,c);index_leg(adj_index.first, adj_index.second);adj_index = randAdj(v, flag, adj_index.first, adj_index.second)){
+        dfs(v, adj_index.first, adj_index.second, flag, zc, zc_okay);
+    }
+    
+}
+int main(){
+    // vector<char>v = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+    // vector<pair<int, int>>e = {{0,2},{0,4},{0,7},{2,1},{2,7},{3,7},{3,1},{4,5},{4,6},{5,6},{1,6}};
+    // Graph test(v,e);
+    // //test.BFS();
+    // test.DFS(0);
+    //替换z变为x，与边界连接的z不能被替换。岛屿问题。
+    
+    vector<vector<char>>v = {
+                             {'x','x','x','x','x'}, 
+                             {'x','z','z','z','x'},
+                             {'x','x','z','x','x'},
+                             {'x','z','x','z','x'},
+                             {'x','x','z','z','x'},
+                             {'x','z','z','z','x'},
+                             {'x','z','x','z','x'},
+                             {'x','z','x','x','x'}
+                            };
+    row = v.size();
+    col = v[0].size();
+    list<z_chain>res;
+    vector<vector<point>>flags(row, vector<point>(col, point()));
+    for(int i = 0; i < row;i++){
+        for(int j = 0; j < col;j++){
+            if(v[i][j] == 'x' )continue;
+            z_chain t; // 以v[i][j]为起点进行dfs搜索 结点记录在t里面
+            bool zc_is_ok = true;
+            dfs(v, i, j, flags, t, zc_is_ok);
+            if(zc_is_ok){
+                res.push_back(t);
+            }
+        }
+    }
+    // 遍历res  获得结果
+    for(auto e:res){
+        for(auto ee: e){
+            v[ee.first][ee.second] = 'x';
+        }
+    }
+    for(int i = 0; i < row; i++){
+        for(int j = 0; j < col;j++){
+            cout<<v[i][j]<<" ";
+        }
+        cout<<endl;
+    }
+    return 0;
+}
+
+
+/*
+a b c d e f g h
+0 1 2 3 4 5 6 7
+
+*/
+
+``````
+
+##### 八、二叉树的遍历
+
+###### 1、先序
+
+**先序遍历宏观结构：对于每个子树，沿着左侧链条依次访问结点，然后再反向访问各个结点的右子树**
+
+<img src="./assets/48.png" style="zoom:80%;" />
+
+所以整个算法可以认为是不断丢入子树，让其进行上述例程。因此，先写出上述例程的算法：
+
+``````c++
+void visitAlongLeftBranch(treeNode *node, stack<treeNode*>&s){//沿着左链访问
+    treeNode *leftNode=node;
+    while(leftNode != NULL){
+        visit(leftNode);
+        s.push(leftNode->right);//左链结点依次入栈 ，不必排除空右子树
+        leftNode = leftNode->left;
+    }
+}
+``````
+
+那么主算法就是不断丢入子树的循环了：
+
+``````c++
+void preOder2(treeNode *root){
+    stack<treeNode*>s;
+    treeNode*childN = root; //整个树
+    while(true){
+        visitAlongLeftBranch(childN, s); //例程
+        if(s.empty()) break;
+        childN = s.top();  s.pop(); //子树
+    }
+}
+``````
+
+###### 2、中序
+
+**中序遍历宏观理解：对于每一个子树，都是沿着左侧链依次谦让访问权，直到最左边结点获得访问权执访问，然后再将访问权交给其右子树，再进行上述谦让。**
+
+<img src="./assets/49.png" style="zoom:100%;" />
+
+每个子树进行的例程如下，不断谦让入栈，但无访问权：
+
+```c++
+void goAlongLeftBranck(treeNode* node, stack<treeNode*>&s){
+    treeNode*curr = node; 
+    while(curr != NULL){ s.push(curr); curr = curr->left;}
+}
+```
+
+主算法，不断丢入子树，访问左侧链最左边结点：
+
+``````c++
+void midOder(treeNode*root){
+    treeNode*childN = root; 
+    stack<treeNode*>s;
+    while(true){
+        goAlongLeftBranck(childN, s);  //从当前结点出发 当前结点作为独立的一颗子树 批次入栈
+        if(s.empty()) break;
+        visit(s.top()); childN = (s.top())->right;//访问最左结点，递交访问控制权至右子树
+        s.pop();
+    }
+}
+``````
+
+###### 3、后序
+
+**后序遍历宏观理解，抽象模型和上述相似，先将访问权交给最左结点的右子树，右子树访问完毕，再访问最左结点。需要定义好什么叫右子树访问完毕？1.右子树为空2.右子树不为空，右子树根节点已经被访问。所以还需要维护另外一个栈，来标识左侧链结点的右子树是否访问完毕。如何来说明第二种情况？当前栈顶的元素和上次pop的元素呈现父-右孩子关系时，说明当前栈顶的结点右子树已经被访问结束了**
+
+每个子树的例程如下，不断向左谦让入栈，并构造标识右子树是否访问完毕的栈：
+
+``````c++
+void goAlongLeftBranchDs(treeNode*node, stack<treeNode*>&lb_s, stack<bool>&rc_s){
+    treeNode*curr = node;
+    while(curr != NULL){
+        lb_s.push(curr); 
+        (curr->right == NULL ) ? rc_s.push(true) : rc_s.push(false);
+        curr = curr->left;
+    }
+}
+``````
+
+主算法，不断丢入子树，针对栈顶的结点，只有其右子树访问完毕，其才获得访问权执行访问：
+
+``````c++
+void postOrder(treeNode*root){
+    treeNode*childN = root;
+    treeNode*topNode;
+    stack<treeNode*>lb_s;
+    stack<bool>rc_s;
+    while(true){
+        goAlongLeftBranchDs(childN, lb_s,rc_s);
+        if(rc_s.top() == true){
+            topNode = lb_s.top();
+            visit(topNode);lb_s.pop();rc_s.pop();
+            if(lb_s.empty() && rc_s.empty()) break;
+            if(topNode == lb_s.top()->right) {rc_s.top()=true;childN=NULL;continue;}
+        }
+        childN = lb_s.top()->right;
+    }
+}
+``````
+
+**另外一种只是用一个栈的做法**：对于每个树，总体方向是往左走，找到最高左侧可见叶结点，迫不得已才转到右侧，此时再入栈右侧子树，当栈顶为空时，表明整个向左路线完毕。在入栈过程中，先放入当前栈顶的右子树（子树根结点），再放入左子树。
+
+<img src="./assets/50.png" style="zoom:100%;" />
+
+``````c++
+#include <iostream>
+#include <stack>
+using namespace std;
+struct TN{
+    int val;
+    TN *left;
+    TN *right;
+    TN(int x):val(x), left(NULL), right(NULL){}
+};
+// 判断两个结点是否为兄弟关系 是 返回true 否 返回false
+#define rightBrother(a, b) ( ((b->left) == (a) || ((b->right) == (a)))  ? false  :  true   )
+/*
+             1
+      3             4
+    9   7         10
+      6   8 
+*/
+void gotoLeftLeaf(stack<TN*>&s){  // 最高左侧可见叶结点
+    TN *t;
+    while(t = s.top()){  //终止条件是 压入NULL 栈顶为空
+        /*尽量往左边走*/
+        if(t->left != NULL){  // 左子树存在
+            if(t->right != NULL)s.push(t->right);  // 先压入右子树
+            s.push(t->left);  // 在压入左子树
+        }else{
+            s.push(t->right);  //如果左子树为空 简明的压入右子树
+        }
+    }
+    s.pop();  //pop掉栈顶的NULL
+}
+
+void traversePost(TN *root){
+    stack<TN*>s;  //辅助栈 模拟 后序遍历过程：入栈顺序：尽量往左侧链走， 子树根结点->其右子树->左子树
+    s.push(root);
+    TN *node = root;  // 栈上次弹出的结点  为了判断当前栈顶结点是父结点还是右子树
+    while(!s.empty()){
+        if(rightBrother(node, s.top())){  // 栈顶结点和之前弹出结点成右兄关系
+            gotoLeftLeaf(s);
+        }
+        // 如果有右兄子树 已经把他入栈了
+        node = s.top(); s.pop(); cout<<node->val<<" ";  // 弹出栈顶，简明的访问
+    }
+}
+int main(){
+    TN n1(1);
+    TN n3(3);
+    TN n4(4);
+    TN n9(9);
+    TN n7(7);
+    TN n10(10);
+    TN n6(6);
+    TN n8(8);
+    n1.left = &n3; n1.right = &n4;
+    n3.left = &n9; n3.right = &n7;
+    n4.left = &n10;
+    //n9.right = &n6;
+    n7.left = &n6; n7.right = &n8;
+    TN *root = &n1;
+    traversePost(&n1);
+
+    return 0;
+}
+``````
+
+###### 4、建树
+
+输入{3,5,6,-1,-1,2,7,-1,-1,4,-1,-1,1,9,-1,-1,8,-1,-1}利用先序遍历重构一个树并找到某两个结点最近公共祖先。利用栈模拟先序过程。
+
+``````c++
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <stack>
+using namespace std;
+struct TreeNode{
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    //TreeNode *parent;
+    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+};
+
+
+TreeNode *findLowestCommonAncestor(TreeNode *node, TreeNode *p, TreeNode *q){
+    if(node == NULL || node == p || node == q)return node;
+    TreeNode *left = findLowestCommonAncestor(node->left, p, q);  // 沿着左子树找这两个结点
+    TreeNode *right = findLowestCommonAncestor(node->right, p, q);  // 沿着右子树找这两个结点
+    if(left == NULL)return right;  // 两个结点在都在右子树
+    if(right == NULL)return left;  // 两个结点都在左子树
+    // 两个结点分布在node左右子树 返回即可；
+    return node;
+}
+
+TreeNode *createTree(vector<int>&v, TreeNode * &p, TreeNode * &q){
+    TreeNode *root = NULL;
+    
+    stack<TreeNode*>sk;
+    for(int i = 0; i < v.size(); i++){
+        if(sk.empty() && i==0){
+            root = new TreeNode(v[i]);
+            sk.push(root);
+            continue;
+        }
+
+        if(v[i] != -1){
+           
+            TreeNode *t = new TreeNode(v[i]);
+            if(v[i] == 7)p = t;
+            if(v[i] == 8)q = t;
+            TreeNode *parent = sk.top();
+            if(parent -> left == NULL){
+                parent -> left = t;  //前序遍历沿右侧链插入
+                //cout<<"parent is "<<parent->val<<" left child is "<<parent->left->val<<endl;
+            }else if(parent -> right == NULL){
+                parent -> right = t;  // 往父结点 左边子树插入
+                //cout<<"parent is "<<parent->val<<" left child is "<<parent->right->val<<endl;
+            }
+            sk.push(t);
+        }else{
+            i++;
+            sk.pop();
+            while(!sk.empty() && sk.top()->right != NULL){  // 找到应该插入的父结点
+                sk.pop();
+            }
+        }
+    }
+    return root;
+}
+void free(TreeNode *node){
+    if(node == NULL)
+        return ;
+    free(node -> left);
+    free(node -> right);
+    delete node;
+}
+void check(TreeNode *node){
+    if(!node)return ;
+    cout<<node->val<<" ";
+    if(node->left != NULL){
+        cout<<"left child is "<<node->left->val<<" ";
+    }else
+    {
+        cout<<"left child is NULL"<<" ";
+    }
+
+    if(node->right != NULL){
+        cout<<"right child is "<<node->right->val<<endl;
+    }else
+    {
+        cout<<"right child is NULL"<<endl;
+    }
+    check(node->left);
+    check(node->right);
+}
+int main()
+{
+    TreeNode *head = nullptr;
+    vector<int>nums = {3,5,6,-1,-1,2,7,-1,-1,4,-1,-1,1,9,-1,-1,8,-1,-1};
+    TreeNode *p = NULL;
+    TreeNode *q = NULL;
+    TreeNode *root = createTree(nums, p, q);
+    //check(root);
+    
+    TreeNode *res = findLowestCommonAncestor(root, p,q);  // 最近公共祖先
+    cout<<"res is "<<res->val<<endl;
+    free(root);// 销毁
+    return 0;
+}
+``````
+
+
+
+
+
