@@ -733,7 +733,32 @@ $f(i,j,l)=[f(i,j,ll)\bigwedge f(i+ll,j+ll,l-ll)] \bigvee[f(i,j+l-ll,l-ll)\bigwed
 状态转移方程根据最后一步定义。分析转移方程，空间可以优化到一维。**`dp[i][j]`和`dp[i-1][j]`、`dp[i-1][j-vol[i-1]]`有关**
 
 ``````c++
-
+#include <iostream>
+using namespace std;
+#define N 1010
+int num, capacity;
+int arrVol[N], arrVal[N];
+int dp[N][N]; // dp[i][j]:前i个物品 ，恰好装j的体积时最大的价值,如果装不了置为-1
+int dp2[N];
+int main(){
+    cin>>num>>capacity;
+    for(int i = 0; i < num; ++i){
+        cin>>arrVol[i]>>arrVal[i];
+    }
+  
+    for(int i = 1;i <= num;++i){
+        // for(int j = 0; j <= capacity;++j){
+        //     dp[i][j] = dp[i-1][j];
+        //     if(j >= arrVol[i-1])
+        //         dp[i][j] = max(dp[i][j], dp[i-1][j-arrVol[i-1]] + arrVal[i-1]);
+        // }
+        for(int j = capacity;j >= arrVol[i-1];j--)
+            dp2[j] = max(dp2[j], dp2[j - arrVol[i-1]] + arrVal[i-1]);
+    }
+    //cout<<dp[num][capacity]<<endl;
+    cout<<dp2[capacity]<<endl;//不必循环比较dp[num][0...capacity]
+    return 0;
+}
 ``````
 
 ###### 二、完全背包问题
@@ -746,7 +771,7 @@ $f(i,j,l)=[f(i,j,ll)\bigwedge f(i+ll,j+ll,l-ll)] \bigvee[f(i,j+l-ll,l-ll)\bigwed
 
 **分析**：最后一步就是最后一个物品**类**是否进入背包。
 
-* `dp[i][j]`表示前i个物品在j容量的限制下能够装的最大值。初始化根据语义初始，最终结果是`dp[N][V]`。
+* `dp[i][j]`表示前i个物品在恰好j体积能够装的最大值。初始化根据语义初始，最终结果是`dp[N][V]`。
 
   经过转化，递归方程（等价变化之后）：**`dp[i][j] = max(dp[i-1][j], dp[i][j-vol[i-1] + val[i-1])`**，可以压缩到一维，计算顺序和01背包不同，是顺序计算。**`dp[i][j]`和`dp[i-1][j]`、`dp[i][j-vol[i-1]]`有关**
 
