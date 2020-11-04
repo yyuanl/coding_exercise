@@ -245,3 +245,133 @@
              (tree-map proc sub-tree)
              (proc sub-tree)))
        tree))
+
+
+;ex2.40
+ (define (filter predicate sequence) 
+   (cond ((null? sequence) nil) 
+         ((predicate (car sequence)) 
+          (cons (car sequence)  
+                (filter predicate (cdr sequence)))) 
+         (else (filter predicate (cdr sequence))))) 
+(define (enumerate-interval low high) 
+  (if (> low high) 
+      nil 
+      (cons low (enumerate-interval (+ low 1) high))))
+(define (accumulate op initial sequence) 
+  (if (null? sequence) 
+      initial 
+      (op (car sequence) 
+          (accumulate op initial (cdr sequence)))))
+(define (flatmap proc seq) 
+  (accumulate append nil (map proc seq)))
+
+(define (unique-pairs n)
+  (flatmap (lambda (hi)
+             (map (lambda (lo)
+                    (list lo hi))
+                  (enumerate-interval 1 (- hi 1))))
+           (enumerate-interval 1 n)))
+
+;ex2.41
+(define (three-num n)
+  (flatmap (lambda (k)
+             (map (lambda (ij)
+                    (append ij (list k)))
+                  (unique-pairs (- k 1))))
+           (enumerate-interval 1 n)))
+
+(define (sum=s n s)
+  (filter (lambda (lst)
+            (= (accumulate + 0 lst) s))
+          (three-num n)))
+;ex2.42 八皇后问题
+(define empty-board nil)
+(define (make-coor x y) (list x y))
+(define (x-lst coor)(car coor))
+(define (y-lst coor)(car (cdr coor)))
+(define (slope a b)
+  (/ (- (y-lst b)(y-lst a))
+     (- (x-lst b)(x-lst a))))
+
+
+(define (col-same? x y)
+  (= (y-lst x) (y-lst y)))
+(define (slope-abs=1? coor1 coor2)
+  (= (abs (slope coor1 coor2)) 1))
+
+#|
+(define cor1 (make-coor 1 6))
+(define cor2 (make-coor 2 3))
+(define w (list (= 1 2)(= 0 0)(= 1 9)))
+(define s (list (list 1 6) (list 2 2) (list 3 7) (list 4 1) (list 5 4) (list 6 8) (list 7 6) ))
+|#
+
+(define (safe?-two-queen new-queen-coor one-queen-coor)
+  (cond ((col-same? new-queen-coor one-queen-coor) #f)
+         ((slope-abs=1? new-queen-coor one-queen-coor) #f)
+         (else #t)))
+
+(define (adjoin-position row k lst)
+  (cons (make-coor k row) lst))
+(define (safe? k one-layout)
+  (let ((new-queen-coor (car one-layout))
+        (other-queen-layout (cdr one-layout)))
+    (accumulate (lambda (x y) (and x y))
+                #t
+                (map (lambda (one-queen-coor)
+                       (safe?-two-queen new-queen-coor one-queen-coor))
+                     other-queen-layout))))
+#|
+(define (test-map)
+  (map (lambda (one-queen-coor)
+                       (safe?-two-queen (make-coor 1 6) one-queen-coor))
+                     (cdr s)))
+|#
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+        (list empty-board)
+        (filter (lambda (positions) (safe? k positions))
+                (flatmap (lambda (rest-of-queens)
+                           (map (lambda (new-row)
+                                  (adjoin-position new-row k rest-of-queens))
+                                (enumerate-interval 1 board-size)))
+                         (queen-cols (- k 1))))))
+  (queen-cols board-size))
+
+
+;ex2.59
+(define (element-of-set? x set)
+  (cond ((null? set) false)
+        ((equal? x (car set)) true)
+        (else (element-of-set? x (cdr set)))))
+(define (union-set set1 set2)
+  (cond ((or (null? set1) (null? set2)) '())
+        ((element-of-set? (car set1) set2)
+         (union-set (cdr set1) set2))
+        (else (cons (car set1) (union-set (cdr set1) set2)))))
+
+;ex2.61
+(define (adjoin-set x set)
+  (cond ((null? set) (list x))
+        ((= x (car set)) set)
+        ((< x (car set)) (cons x set))
+        (else (cons (car set) (adjoin-set x (cdr set))))))
+
+(define (union-set-sorted set1 set2)
+  (cond ((null? set1) set2)
+        ((null? set2) set1)
+        (else (let ((begin1 (car set1))
+                    (begin2 (car set2)))
+                (cond ((= begin1 begin2) (cons begin1 (union-set-sorted (cdr set1)(cdr set2))))
+                      ((< begin1 begin2) (cons begin1 (union-set-sorted (cdr set1) set2)))
+                      ((< begin2 begin1) (cons begin2 (union-set-sorted set1 (cdr set2)))))))))
+
+
+
+
+
+
+
+

@@ -149,7 +149,7 @@
   
 (define (reverse iterms)
   (if (null? iterms)
-      iterms
+      nil
       (append (reverse (cdr iterms))
              (list (car iterms)))))
 
@@ -193,4 +193,144 @@
 
 (define (test221)
   (square-list-map (list 1 2 3 4)))
+(define xx (list 1 2 3))
+(define yy (list 4 5 6))
+
+;ex2.27
+(define (deep-reverse alist-227)
+  (if (not (pair? alist-227))
+      alist-227
+      (append (deep-reverse (cdr alist-227))
+              (list (deep-reverse (car alist-227))))))
+(define x227 (list (list 1 2)
+                   (list 3 4)))
+
+;ex2.28
+(define (fringe lst)
+  (cond ((null? lst) lst)
+        ((not (pair? lst))(list lst))
+        (else (append (fringe (car lst))
+                      (fringe (cdr lst))))))
+(define (fringe-1 lst)
+  (if (not (pair? lst))
+      (list lst)
+      (append (fringe (car lst))
+              (fringe (cdr lst)))))
+(define x228 (list (list 1 2)(list 3 4)))
+;ex2.30
+(define (square-tree-rec tre)
+  (cond ((null? tre) nil)
+        ((not (pair? tre)) (* tre tre))
+        (else (cons (square-tree-rec (car tre))
+                    (square-tree-rec (cdr tre))))))
+(define (square-tree-map tre)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (square-tree-map sub-tree)
+             (* sub-tree sub-tree)))
+       tre))
+(define x230 (list 1
+                   (list 2
+                         (list 3 4)
+                         5)
+                   (list 6 7)))
+
+;ex2.32
+(define (square-tree232 tree)
+  (tree-map square tree))
+(define (square x) (* x x))
+(define (tree-map proc tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (tree-map proc sub-tree)
+             (proc sub-tree)))
+       tree))
+
+
+;ex2.40
+ (define (filter predicate sequence) 
+   (cond ((null? sequence) nil) 
+         ((predicate (car sequence)) 
+          (cons (car sequence)  
+                (filter predicate (cdr sequence)))) 
+         (else (filter predicate (cdr sequence))))) 
+(define (enumerate-interval low high) 
+  (if (> low high) 
+      nil 
+      (cons low (enumerate-interval (+ low 1) high))))
+(define (accumulate op initial sequence) 
+  (if (null? sequence) 
+      initial 
+      (op (car sequence) 
+          (accumulate op initial (cdr sequence)))))
+(define (flatmap proc seq) 
+  (accumulate append nil (map proc seq)))
+
+(define (unique-pairs n)
+  (flatmap (lambda (hi)
+             (map (lambda (lo)
+                    (list lo hi))
+                  (enumerate-interval 1 (- hi 1))))
+           (enumerate-interval 1 n)))
+
+;ex2.41
+(define (three-num n)
+  (flatmap (lambda (k)
+             (map (lambda (ij)
+                    (append ij (list k)))
+                  (unique-pairs (- k 1))))
+           (enumerate-interval 1 n)))
+
+(define (sum=s n s)
+  (filter (lambda (lst)
+            (= (accumulate + 0 lst) s))
+          (three-num n)))
+;ex2.42
+(define empty-board nil)
+(define (xielu a b)
+  (/ (- (cdr b)(cdr a))
+     (- (car b)(car b))))
+(define (safe-one2one first seconde)
+  (and (not (= (car first)(car seconde)))
+       (not (= (abs (xielu first seconde)) 1))))
+(define w (list (= 1 2)(= 0 0)(= 1 9)))
+
+(define (safe? col lst)
+  (define (target-posi-safe-other-posi target-posi a-lst)
+    (define (iter res wlst)
+      (if (null? wlst)
+          res
+          (iter (and res (car wlst)) (cdr wlst))))
+    (iter (= 0 0) (map (lambda (one-posi)
+                                   (safe-one2one target-posi one-posi))
+                                 (a-lst))))
+  (let ((reverselst (reverse lst)))
+    (target-posi-safe-other-posi (car reverselst) (cdr reverselst))))
+(define (adjoin-position row k lst)
+  (map (lambda (quns-buju)
+         (append quns-buju (list (list row k))))
+       lst))
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+        (list empty-board)
+        (filter (lambda (positions) (safe? k positions))
+                (flatmap (lambda (rest-of-queens)
+                           (map (lambda (new-row)
+                                  (adjoin-position new-row k rest-of-queens))
+                                (enumerate-interval 1 board-size)))
+                         (queen-cols (- k 1))))))
+  (queen-cols board-size))
+
+
+
+
+
+
+
+
+
+
+
+
 
