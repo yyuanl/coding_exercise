@@ -6,6 +6,7 @@ int majCandiate(vector<int>&v){
     for(int diff = 0, i = 0;i < v.size();i++){ // diff代表当前前缀中ret个数与其他元素总数差
         if(diff == 0){
             ret = v[i];
+            diff = 1;
         }else{
             (ret == v[i]) ? diff++ : diff--;
         }
