@@ -39,6 +39,8 @@ index_root = distance(vin.begin(), it);
 ``````c
 vector<int>new_vector;
 new_vector.assign(it_left,it_right);//it_left和it_right是已知vector [,)
+//或者
+vector<int>new_vector(it.begin(), it.begin()+1)
 ``````
 
 ###### 3. 去重：
@@ -62,7 +64,7 @@ res.assign(s.begin(), s.end());
 可以使用make_pair或者初始化列表来生成一对pair
 
 ``````c++
-#include <pair>
+#include <utility>
 #include <vector>
 int main(){
 	vector<pair<int, int>>test;
@@ -150,7 +152,7 @@ const char* resuChar = str.c_str();
 
 ``````c++
 string st("adfadafdfdfdsfdfd");
-string a = st.substr(1, 5); //从索引为1处复制5个[1,1+5)
+string a = st.substr(1, 5); //从索引为1处复制5个[1,1+5) 第二个参数是要字串的长度
 ``````
 
 ###### 13、数值型字符串转整形
@@ -199,8 +201,8 @@ string a = st.substr(1, 5); //从索引为1处复制5个[1,1+5)
   string str1;
   cin>>str1;
   char arr_cr[str1.size()];
-  memset(arr_cr, 0, sizeof(arr_cr));
-  strcpy(arr_cr, str1.c_str());
+  memset(arr_cr, 0, sizeof(arr_cr));  //include <string.h>
+  strcpy(arr_cr, str1.c_str());  //include <string.h>
   ``````
 
 
